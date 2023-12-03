@@ -15,7 +15,9 @@ int max(int a, int b) {
 }
 
 
-void problem_1() {
+void problem_1_and_2() {
+    clock_t start = clock();
+
     int RED_TARGET = 12, GREEN_TARGET = 13, BLUE_TARGET = 14;
 
     // Each game starts with "Game <ID>:", so to get the ID of the game we have to start at the 5th index.
@@ -70,13 +72,13 @@ void problem_1() {
         cubePowerSum += (maxRed * maxGreen * maxBlue);
     }
 
-    printf("Problem 01: %d\n", gameIdSum);
-    printf("Problem 02: %d\n", cubePowerSum);
+    clock_t end = clock();
+    double timeElapsedInSeconds = (double)(end - start) / CLOCKS_PER_SEC;
+
+    printf("Problem 01: %d [%fs]\n", gameIdSum, timeElapsedInSeconds);
+    printf("Problem 02: %d [%fs]\n", cubePowerSum, timeElapsedInSeconds);
 }
 
 int main() {
-    clock_t start = clock();
-    problem_1();
-    clock_t end = clock();
-    printf("Problem 01 + 02 Time: %fs\n\n", (double)(end - start) / CLOCKS_PER_SEC);
+    problem_1_and_2();
 }
