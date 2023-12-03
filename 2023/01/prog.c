@@ -7,45 +7,27 @@
 
 
 void problem_1() {
-    FILE *input_file = fopen("2023/01/input.txt", "r");
-    
+    FILE *inputFile = fopen("2023/01/input.txt", "r");
+
     int total = 0;
+    int digit1, digit2;
 
-    char ch;
-    char digit_1, digit_2;
-    char digits[3];
-    // terminate the string
-    digits[2] = '\0';
-    bool digit_1_found = false;
-    bool digit_2_found = false;
-    do {
-        ch = fgetc(input_file);
+    char *line = NULL;
+    size_t lineCap = 0;
+    ssize_t lineLen;
+    while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
+        digit1 = digit2 = -1;
 
-        int char_is_digit = isdigit(ch);
-        if (char_is_digit && !digit_1_found) {
-            digit_1 = ch;
-            digit_1_found = true;
-        } else if (char_is_digit) {
-            digit_2 = ch;
-            digit_2_found = true;
-        }
-
-        if (ch == '\n' || ch == EOF) {
-            digits[0] = digit_1;
-
-            if (digit_2_found) {
-                digits[1] = digit_2;
-            } else {
-                // if there's only one digit in the line, the number is that digit twice.
-                digits[1] = digit_1;
+        for (int idx = 0; idx < lineLen; idx += 1) {
+            if (isdigit(line[idx]) && digit1 == -1) {
+                digit1 = line[idx] - '0';
+            } else if (isdigit(line[idx])) {
+                digit2 = line[idx] - '0';
             }
-
-            total += atoi(digits);
-
-            digit_1_found = false;
-            digit_2_found = false;
         }
-    } while (ch != EOF);
+
+        total += (digit1 * 10) + ((digit2 == -1) ? digit1 : digit2);
+    }
 
     printf("Problem 01: %d\n", total);
 }
@@ -166,6 +148,7 @@ void problem_2() {
 
     printf("Problem 02: %d\n", total);
 }
+
 
 int main() {
     clock_t start = clock();
