@@ -3,11 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-
-void substring(char* string, char* dest, int startIdx, int endIdx) {
-    strncpy(dest, string + startIdx, endIdx - startIdx);
-    dest[endIdx - startIdx] = '\0';
-}
+#include "../../utils/string.c"
 
 
 int max(int a, int b) {

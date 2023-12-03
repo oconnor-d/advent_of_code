@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <string.h>
-#include <stdbool.h>
+
+#include "../../utils/string.c"
 
 int EMPTY_NUMBER = 0;
 char GEAR_SYMBOL = '*';
@@ -21,7 +21,7 @@ void problem1And2() {
     size_t lineCap = 0;
     ssize_t lineLength;
 
-    
+    // Count the number of rows and cols in the input.
     int inputRows = 0, inputCols = 0;
     while ((lineLength = getline(&line, &lineCap, inputFile)) > 0) {
         inputCols = lineLength;
@@ -29,6 +29,9 @@ void problem1And2() {
     }
     fseek(inputFile, 0, SEEK_SET);
 
+    // Numbers will hold all the numbers found in the input, in the same row and col as the numbers appear in the input.
+    // Numbers that take up multiple characters in the input (e.g. 123 in '..123..') will appear in the numbers array in
+    // the same place as each digit of the number (e.g. '..123..' -> [X, X, 123, 123, 123, X, X]).
     int numbers[inputRows][inputCols];
     for (int r = 0; r < inputRows; r += 1) {
         for (int c = 0; c < inputCols; c += 1) {
@@ -40,43 +43,40 @@ void problem1And2() {
     // A symbolPosition is of the form: [symbolRow, symbolCol, isGear]. Where isGear of 1 means the
     // symbol is a gear, and an isGear of 0 means otherwise.
     int symbolPositions[inputRows * inputCols][3];
+
+    // Parse the input file into the number and symbol position arrays.
     int row = 0, numSymbols = 0;
     while ((lineLength = getline(&line, &lineCap, inputFile)) > 0) {
-        
         int idx = 0;
         while (idx < lineLength) {
             if (isdigit(line[idx])) {
-                char numberString[lineLength + 1];
-                int numberIdx = 0;
+                // Found a number.
+                int startIdx, endIdx;
+                int number = parseFirstNumber(line + idx, &startIdx, &endIdx);
+                int numberLength = endIdx - startIdx;
 
-                // TODO: can probably just get the index of the end character or next . and copy it over in a whole chunk.
-                while (isdigit(line[idx]) && idx < lineLength) {
-                    numberString[numberIdx] = line[idx];
-                    numberIdx += 1;
-                    idx += 1;
+                for (int nIdx = 0; nIdx < numberLength; nIdx += 1) {
+                    numbers[row][idx + nIdx] = number;
                 }
-                numberString[numberIdx] = '\0';
-                int number = atoi(numberString);
 
-                while (numberIdx > 0) {
-                    numbers[row][idx - numberIdx] = number;
-                    numberIdx -= 1;
-                }
+                idx += numberLength;
             } else if (line[idx] != '.' && line[idx] != '\n') {
+                // Found a symbol.
                 symbolPositions[numSymbols][0] = row;
                 symbolPositions[numSymbols][1] = idx;
                 symbolPositions[numSymbols][2] = line[idx] == GEAR_SYMBOL;
                 idx += 1;
                 numSymbols += 1;
             } else {
+                // Found a '.', which gets ignored.
                 idx += 1;
             }
-
         }
 
         row += 1;
     }
 
+    // For each symbol, add up the surrounding numbers.
     int symbolRow, symbolCol, symbolIsGear, symbolGearRatio, numGearParts;
     for (int symbolIdx = 0; symbolIdx < numSymbols; symbolIdx += 1) {
         symbolRow = symbolPositions[symbolIdx][0];
@@ -86,7 +86,7 @@ void problem1And2() {
         numGearParts = 0;
 
         /*
-            Positions to check for a symbol (not on the edge of the board):
+            Positions to check for a symbol (that's not on an edge of the board):
 
             (-1, -1), (-1, 0), (-1, 1)
             (0, -1) , X      , (0, 1)
