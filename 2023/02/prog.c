@@ -81,4 +81,6 @@ void problem_1_and_2() {
 
 int main() {
     problem_1_and_2();
+
+    return 0;
 }
