@@ -192,4 +192,6 @@ void problem1And2() {
 
 int main() {
     problem1And2();
+
+    return 0;
 }
