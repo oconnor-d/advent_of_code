@@ -184,9 +184,9 @@ void problem1And2() {
     }
 
     clock_t end = clock();
-    double timeElapsedInSeconds = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("Problem 01: %d [%fs]\n", partsTotal, timeElapsedInSeconds);
-    printf("Problem 02: %d [%fs]\n", gearRatioTotal, timeElapsedInSeconds);
+    double timeElapsedInMilliSeconds = (double)(end - start) / CLOCKS_PER_SEC * 1000;
+    printf("Problem 01: %d [%.2fms]\n", partsTotal, timeElapsedInMilliSeconds);
+    printf("Problem 02: %d [%.2fms]\n", gearRatioTotal, timeElapsedInMilliSeconds);
 }
 
 

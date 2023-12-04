@@ -60,7 +60,7 @@ void problem1And2() {
     }
 
     clock_t end = clock();
-    printf("Problem 01: %d [%fs]\n", cardTotals, (double)(end - start) / CLOCKS_PER_SEC);
+    printf("Problem 12: %d [%.2fms]\n", cardTotals, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 
     // Holds how many copies of each card we have, starting with 1 of each.
     int copiedCards[matchingNumbersPerCard.numItems];
@@ -88,7 +88,7 @@ void problem1And2() {
     freeIntArray(&matchingNumbersPerCard);
 
     end = clock();
-    printf("Problem 02: %d [%fs]\n", numScratchCards, (double)(end - start) / CLOCKS_PER_SEC);
+    printf("Problem 02: %d [%.2fms]\n", numScratchCards, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 

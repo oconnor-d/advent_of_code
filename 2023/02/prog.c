@@ -58,10 +58,10 @@ void problem_1_and_2() {
     }
 
     clock_t end = clock();
-    double timeElapsedInSeconds = (double)(end - start) / CLOCKS_PER_SEC;
+    double timeElapsedInMilliSeconds = (double)(end - start) / CLOCKS_PER_SEC * 1000;
 
-    printf("Problem 01: %d [%fs]\n", gameIdSum, timeElapsedInSeconds);
-    printf("Problem 02: %d [%fs]\n", cubePowerSum, timeElapsedInSeconds);
+    printf("Problem 01: %d [%.2fms]\n", gameIdSum, timeElapsedInMilliSeconds);
+    printf("Problem 02: %d [%.2fms]\n", cubePowerSum, timeElapsedInMilliSeconds);
 }
 
 int main() {
