@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "array.h"
@@ -27,4 +28,38 @@ void insertIntArray(IntArray* array, int item) {
 
     array->data[array->numItems] = item;
     array->numItems += 1;
+}
+
+
+bool containsIntArray(IntArray* array, int item) {
+    for (int idx = 0; idx < array->numItems; idx += 1) {
+        if (array->data[idx] == item) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+int sumIntArray(IntArray* array) {
+    int sum = 0;
+    for (int idx = 0; idx < array->numItems; idx += 1) {
+        sum += array->data[idx];
+    }
+
+    return sum;
+}
+
+
+void printIntArray(IntArray* array) {
+    printf("[Size: %zu, Items: %zu] [", array->size, array->numItems);
+    for (int idx = 0; idx < array->numItems; idx += 1) {
+        if (idx == array->numItems - 1) {
+            printf("%d", array->data[idx]);
+        } else {
+            printf("%d, ", array->data[idx]);
+        }
+    }
+    printf("]\n");
 }
