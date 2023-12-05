@@ -1,0 +1,34 @@
+#!/bin/zsh
+
+if [ "$#" -ne 1 ]; then
+    echo "Given invalid arguments, provide a single positional argument for the day number."
+    exit
+fi
+
+SCRIPT_PATH="${0:A:h}"
+
+YEAR_NUMBER="2023"
+DAY_NUMBER="$1"
+NEW_FOLDER="$SCRIPT_PATH/$YEAR_NUMBER/$DAY_NUMBER/"
+
+if [ -d "$NEW_FOLDER" ]; then
+  echo "$NEW_FOLDER already exists, exiting..."
+  exit
+fi
+
+echo "Creating directory $NEW_FOLDER with files: "
+echo "  - prog.c"
+echo "  - input.txt"
+echo "  - input_test.txt"
+read -q "CREATE?Enter 'y' to proceed: "
+
+if [ "$CREATE" = "y" ]; then
+    mkdir "$NEW_FOLDER"
+    touch "$NEW_FOLDER/prog.c"
+    touch "$NEW_FOLDER/input.txt"
+    touch "$NEW_FOLDER/input_test.txt"
+
+    echo "\nSuccessfully created directory, exiting..."
+else
+    echo "\nExiting..."
+fi
