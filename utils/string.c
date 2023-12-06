@@ -39,3 +39,25 @@ void substring(char* string, char* dest, int startIdx, int endIdx) {
     strncpy(dest, string + startIdx, endIdx - startIdx);
     dest[endIdx - startIdx] = '\0';
 }
+
+
+/**
+ * Builds a new null-terminated char ptr to a version of the given string with all
+ * whitespace removed.
+*/
+char* stripWhitespace(char* string) {
+    char* strippedString = string;
+
+    int sourceIdx, destIdx;
+    for (sourceIdx = 0, destIdx = 0; sourceIdx < strlen(string); sourceIdx += 1, destIdx += 1) {
+        if (string[sourceIdx] != ' ') {
+            strippedString[destIdx] = string[sourceIdx];
+        } else {
+            // Basically cancel out the += 1 from the next loop of this.
+            destIdx -= 1;
+        }
+    }
+    strippedString[destIdx] = '\0';
+
+    return strippedString;
+}
