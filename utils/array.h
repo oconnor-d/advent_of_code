@@ -3,17 +3,24 @@
 
 #include <stdlib.h>
 
+/*
+    INT ARRAY
+*/
 
 typedef struct {
-    /* data */
     int* data;
     size_t numItems;
     size_t size;
 } IntArray;
 
+/*
+    LLONG ARRAY
+*/
 
-void initIntArray(IntArray* array, size_t initialSize);
-void freeIntArray(IntArray* array);
-void insertIntArray(IntArray* array, int item);
+typedef struct {
+    long long* data;
+    size_t numItems;
+    size_t size;
+} LLongArray;
 
 #endif
