@@ -31,7 +31,13 @@ long long parseFirstNumber(char* string, int* startIdx, int* endIdx) {
 }
 
 
-// TODO: Proper edge case handling
+// TODO: Implement proper edge case handling before using, like: "    ".
+/**
+ * Gets the first whole word from `string`, if any is present. The `startIdx` and `endIdx`
+ * will hold the starting and ending index of the found word.
+ * 
+ * A word is a continuous set of non-empty and non-newline chars.
+*/
 char* parseFirstWord(char* string, int* startIdx, int* endIdx) {
     char* firstWord = string;
     bool wordStarted = false;
