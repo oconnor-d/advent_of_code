@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 
 /**
@@ -27,6 +28,32 @@ long long parseFirstNumber(char* string, int* startIdx, int* endIdx) {
     *startIdx = -1;
     *endIdx = -1;
     return -1;
+}
+
+
+// TODO: Proper edge case handling
+char* parseFirstWord(char* string, int* startIdx, int* endIdx) {
+    char* firstWord = string;
+    bool wordStarted = false;
+    int idx, firstWordIdx = 0;
+    for(idx = 0; idx < strlen(string); idx += 1) {
+        if (wordStarted && (string[idx] == ' ' || string[idx] == '\n')) {
+            *endIdx = idx;
+            firstWord[firstWordIdx] = '\0';
+            return firstWord;
+        } else if (!wordStarted && (string[idx] == ' ' || string[idx] == '\n')) {
+            wordStarted = true;
+            *startIdx = idx;
+        } else {
+            wordStarted = true;
+            firstWord[firstWordIdx] = string[idx];
+            firstWordIdx += 1;
+        }
+    };
+
+    *endIdx = idx;
+    firstWord[firstWordIdx] = '\0';
+    return firstWord;
 }
 
 /**
