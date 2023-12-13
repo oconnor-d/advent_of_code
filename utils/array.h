@@ -23,4 +23,14 @@ typedef struct {
     size_t size;
 } LLongArray;
 
+/*
+    STRING ARRAY
+*/
+typedef struct {
+    char** data;
+    size_t numItems;
+    size_t size;
+    size_t stringMaxSize;
+} StringArray;
+
 #endif

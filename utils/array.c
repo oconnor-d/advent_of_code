@@ -131,3 +131,77 @@ void printLLongArray(LLongArray* array) {
     }
     printf("]\n");
 }
+
+
+/*
+    STRING ARRAY
+*/
+void initStringArray(StringArray* array, size_t initialSize, size_t stringMaxSize) {
+    array->data = malloc(initialSize * sizeof(char*));
+    array->numItems = 0;
+    array->size = initialSize;
+    array->stringMaxSize = stringMaxSize;
+
+    for (int idx = 0; idx < array->size; idx += 1) {
+        array->data[idx] = malloc(array->stringMaxSize * sizeof(char));
+    }
+}
+
+
+void freeStringArray(StringArray* array) {
+    for (int idx = 0; idx < array->size; idx += 1) {
+        free(array->data[idx]);
+    }
+    free(array->data);
+
+    array->data = NULL;
+    array->numItems = 0;
+    array->size = 0;
+}
+
+
+void insertStringArray(StringArray* array, char* item) {
+    if (array->numItems >= array->size) {
+        
+        // Grow the array.
+        array->size = array->size * 2;
+        array->data = realloc(array->data, array->size * sizeof(char*));
+        for (int idx = 0; idx < array->size; idx += 1) {
+            array->data[idx] = realloc(array->data[idx], array->stringMaxSize * sizeof(char));
+        }
+    }
+
+    strcpy(array->data[array->numItems], item);
+    array->numItems += 1;
+}
+
+
+void insertAtStringArray(StringArray* array, char* item, int idx) {
+    if (idx >= 0 && idx < array->numItems) {
+        strcpy(array->data[idx], item);
+    }
+}
+
+
+bool containsStringArray(StringArray* array, char* item) {
+    for (int idx = 0; idx < array->numItems; idx += 1) {
+        if (strcmp(array->data[idx], item) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+void printStringArray(StringArray* array) {
+    printf("[Size: %zu, Items: %zu] [", array->size, array->numItems);
+    for (int idx = 0; idx < array->numItems; idx += 1) {
+        if (idx == array->numItems - 1) {
+            printf("%s", array->data[idx]);
+        } else {
+            printf("%s, ", array->data[idx]);
+        }
+    }
+    printf("]\n");
+}
