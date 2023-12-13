@@ -14,7 +14,7 @@
 long long parseFirstNumber(char* string, int* startIdx, int* endIdx) {
     char* strPtr = string;
     while (*strPtr) {
-        if (isdigit(*strPtr)) {
+        if (isdigit(*strPtr) || *strPtr == '-') {
             *startIdx = strPtr - string;
             long long val = strtoll(strPtr, &strPtr, 10);
             *endIdx = strPtr - string;
