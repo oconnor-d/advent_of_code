@@ -34,6 +34,13 @@ void insertIntArray(IntArray* array, int item) {
 }
 
 
+void insertAtIntArray(IntArray* array, int item, int idx) {
+    if (idx >= 0 && idx < array->numItems) {
+        array->data[idx] = item;
+    }
+}
+
+
 bool containsIntArray(IntArray* array, int item) {
     for (int idx = 0; idx < array->numItems; idx += 1) {
         if (array->data[idx] == item) {
