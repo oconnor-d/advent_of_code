@@ -24,7 +24,7 @@ read -q "CREATE?Enter 'y' to proceed: "
 
 if [ "$CREATE" = "y" ]; then
     mkdir "$NEW_FOLDER"
-    touch "$NEW_FOLDER/prog.c"
+    cp "$SCRIPT_PATH/_starter_prog.c" "$NEW_FOLDER/prog.c"
     touch "$NEW_FOLDER/input.txt"
     touch "$NEW_FOLDER/input_test.txt"
 

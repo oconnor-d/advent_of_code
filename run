@@ -1,11 +1,35 @@
 #!/bin/zsh
 
+YEAR_AND_DAY=$1
+BUILD_PROGRAM=false
+INPUT_FILE="input.txt"
+
+while getopts ":hbef:" arg "${@:2}"; do
+        case $arg in
+                b)
+                        BUILD_PROGRAM=true
+                        ;;
+                e)
+                        INPUT_FILE="input_test.txt"
+                        ;;
+                f)
+                        INPUT_FILE=${OPTARG}
+                        ;;
+                h | *) # Display help.
+                        echo "-b [Compile before running]\n-e [Use input_test.txt as input]\n-f <filepath> [Use the given file as input]\n"
+                        exit 0
+                        ;;
+        esac
+done
+
 SCRIPT_PATH="${0:A:h}"
 
 cd $SCRIPT_PATH
 
-if [ "$2" = "-b" ]; then
+if [ "$BUILD_PROGRAM" = true ]; then
         echo "Compiling..."
-        gcc -g -Wall ~/code/aoc/$1/prog.c -o ~/code/aoc/$1/prog
+        gcc -g -Wall ~/code/aoc/$YEAR_AND_DAY/prog.c -o ~/code/aoc/$YEAR_AND_DAY/prog
 fi
-$SCRIPT_PATH/$1/prog
+
+echo "Running with file '$INPUT_FILE'"
+$SCRIPT_PATH/$YEAR_AND_DAY/prog "$YEAR_AND_DAY/$INPUT_FILE"
