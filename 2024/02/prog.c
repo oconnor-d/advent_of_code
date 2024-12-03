@@ -8,7 +8,12 @@
 
 bool isSafe(IntArray* levels) {
     /*
-    Checks that the given re
+    Checks that the given report is safe. A report is safe if all levels are in increasing or
+    decreasing order, and the difference between two sequential level is between 1 and 3 (inclusive).
+
+    We get the direction the levels are going when looking at the first two levels, and check that
+    directin doesn't flip further down the line. And then it's just a matter of checking that there's
+    no too big or too small leaps between two levels.
     */
 
     // -1 = descending, 0 = unset (or possibly level), 1 = ascending.
