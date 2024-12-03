@@ -2,7 +2,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "../../utils/array.c"
 #include "../../utils/string.c"
 
 int cmp_int(const void* va, const void* vb) {
@@ -14,6 +13,9 @@ int cmp_int(const void* va, const void* vb) {
 }
 
 void problem1(char* inputFilePath) {
+    // The problem is asking us to calculate the differences of the smallest pairs in both lists, so we'll
+    // just sort both of them from low to high and sum up the difference sequentially.
+
     clock_t start = clock();
 
     int leftLocations[1000], rightLocations[1000];
@@ -33,9 +35,6 @@ void problem1(char* inputFilePath) {
     }
 
     fclose(inputFile);
-
-    // The problem is asking us to calculate the differences of the smallest pairs in both lists, so we'll
-    // just sort both of them from low to high and sum up the difference sequentially.
 
     // Sort both arrays from low to high.
     qsort(leftLocations, locationIdx, sizeof(int), cmp_int);
@@ -52,26 +51,6 @@ void problem1(char* inputFilePath) {
 }
 
 void problem2(char* inputFilePath) {
-    clock_t start = clock();
-
-    int leftLocations[1000], rightLocations[1000];
-
-    int locationIdx = 0;
-    int numberStartIdx, numberEndIdx;
-    FILE* inputFile = fopen(inputFilePath, "r");
-
-    char* line = NULL;
-    size_t lineCap = 0;
-    ssize_t lineLen;
-    while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
-        leftLocations[locationIdx] = parseFirstNumber(line, &numberStartIdx, &numberEndIdx);
-        rightLocations[locationIdx] = parseFirstNumber(line + numberEndIdx, &numberStartIdx, &numberEndIdx);
-
-        locationIdx += 1;
-    }
-
-    fclose(inputFile);
-
     // Instead of getting the difference of the smallest pairs, we're multiplying each number in the left list
     // by the number of times it appears in the right list.
     //
@@ -93,6 +72,26 @@ void problem2(char* inputFilePath) {
     //
     // To handle multiple of the same number in the last list, we cache the number count of the last iteration and just use
     // that for duplicate numbers, this way we don't have to recount the right list.
+
+    clock_t start = clock();
+
+    int leftLocations[1000], rightLocations[1000];
+
+    int locationIdx = 0;
+    int numberStartIdx, numberEndIdx;
+    FILE* inputFile = fopen(inputFilePath, "r");
+
+    char* line = NULL;
+    size_t lineCap = 0;
+    ssize_t lineLen;
+    while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
+        leftLocations[locationIdx] = parseFirstNumber(line, &numberStartIdx, &numberEndIdx);
+        rightLocations[locationIdx] = parseFirstNumber(line + numberEndIdx, &numberStartIdx, &numberEndIdx);
+
+        locationIdx += 1;
+    }
+
+    fclose(inputFile);
 
     // Sort both arrays from low to high.
     qsort(leftLocations, locationIdx, sizeof(int), cmp_int);

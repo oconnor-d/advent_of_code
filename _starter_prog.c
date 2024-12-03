@@ -13,6 +13,8 @@ void problem1(char* inputFilePath) {
 
     }
 
+    fclose(inputFile);
+
     clock_t end = clock();
     printf("Problem 01: %d [%.2fms]\n", 0, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
@@ -27,6 +29,8 @@ void problem2(char* inputFilePath) {
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
 
     }
+
+    fclose(inputFile);
 
     clock_t end = clock();
     printf("Problem 02: %d [%.2fms]\n", 0, (double)(end - start) / CLOCKS_PER_SEC * 1000);
