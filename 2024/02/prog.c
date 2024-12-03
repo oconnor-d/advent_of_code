@@ -84,7 +84,7 @@ void problem1(char* inputFilePath) {
 
 void problem2(char* inputFilePath) {
     /*
-    The problem this time is the same a in Problem 1, but with some wiggle room where a report can tolerate
+    The problem this time is the same as in Problem 1, but with some wiggle room where a report can tolerate
     a single bad level.
 
     I tried to do this without brute-force but the edge cases were annoying me, so instead I first check
