@@ -6,7 +6,7 @@
 #include "../../utils/array.c"
 #include "../../utils/string.c"
 
-bool isSafe(IntArray* levels) {
+bool isSafe(IntArray* report) {
     /*
     Checks that the given report is safe. A report is safe if all levels are in increasing or
     decreasing order, and the difference between two sequential level is between 1 and 3 (inclusive).
@@ -18,30 +18,26 @@ bool isSafe(IntArray* levels) {
 
     // -1 = descending, 0 = unset (or possibly level), 1 = ascending.
     int direction = 0;
-    int levelDifference;
+    int previousLevel, level, levelDifference;
 
-    int previousLevel, level;
+    previousLevel = report->data[0];
 
-    previousLevel = levels->data[0];
-
-    int idx = 1;
-    while (idx < levels->numItems) {
-        level = levels->data[idx];
+    // We've already used idx 0 for `previousLevel`, so start at 1.
+    for (int idx = 1; idx < report->numItems; idx += 1) {
+        level = report->data[idx];
 
         // Set the direction the first two levels are heading.
         if (direction == 0) direction = level > previousLevel ? 1 : -1;
 
         // If we're ascending, level - previousLevel is positive, negative otherwise. So multiplying it by the known
         // direction ensures the `levelDifference` is positive IFF it's continuing in the same direction. If it's
-        // switching direction, it'll be negative.
+        // switching direction, it'll be negative and out of bounds below.
         levelDifference = direction * (level - previousLevel);
 
         // Check if the difference is out of bounds, if so, the report is unsafe.
         if (levelDifference <= 0 || levelDifference >= 4) return false;
 
         previousLevel = level;
-
-        idx += 1;
     }
 
     // We've found no bad levels.
@@ -66,17 +62,18 @@ void problem1(char* inputFilePath) {
     int safeReports = 0;
     int parserEndIdx = 0;
 
-    IntArray levels;
-    initIntArray(&levels, 10);
+    IntArray report;
+    initIntArray(&report, 10);
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
         parserEndIdx = 0;
         // Reset the array without freeing up it's memory.
-        levels.numItems = 0;
+        report.numItems = 0;
+
         while (parserEndIdx < lineLen - 1) {
-            insertIntArray(&levels, parseNumber(line, parserEndIdx, &parserEndIdx));
+            insertIntArray(&report, parseNumber(line, parserEndIdx, &parserEndIdx));
         }
 
-        if (isSafe(&levels)) safeReports += 1;
+        if (isSafe(&report)) safeReports += 1;
     }
 
     fclose(inputFile);
@@ -108,37 +105,39 @@ void problem2(char* inputFilePath) {
     int parserEndIdx = 0;
     int idxToExclude = 0;
 
-    IntArray levels, subLevels;
-    initIntArray(&levels, 10);
-    initIntArray(&subLevels, 10);
+    // Report holds the entire line, subReport will hold the entire line - a specific level.
+    IntArray report, subReport;
+    initIntArray(&report, 10);
+    initIntArray(&subReport, 10);
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
         parserEndIdx = 0;
         // Reset the arrays without freeing up their memory.
-        levels.numItems = 0;
-        subLevels.numItems = 0;
+        report.numItems = 0;
+        subReport.numItems = 0;
+
         while (parserEndIdx < lineLen - 1) {
-            insertIntArray(&levels, parseNumber(line, parserEndIdx, &parserEndIdx));
+            insertIntArray(&report, parseNumber(line, parserEndIdx, &parserEndIdx));
         }
 
         // First, check if the entire report is safe.
-        if (isSafe(&levels)) {
+        if (isSafe(&report)) {
             safeReports += 1;
         } else {
             // If the whole report isn't safe, start checking all sub-permutations with one level removed.
             idxToExclude = 0;
-            while (idxToExclude < levels.numItems) {
-                for (int idx = 0; idx < levels.numItems; idx += 1) {
-                    if (idx != idxToExclude) insertIntArray(&subLevels, levels.data[idx]);
+            while (idxToExclude < report.numItems) {
+                for (int idx = 0; idx < report.numItems; idx += 1) {
+                    if (idx != idxToExclude) insertIntArray(&subReport, report.data[idx]);
                 }
 
-                if (isSafe(&subLevels)) {
+                if (isSafe(&subReport)) {
                     // Once we find a single report without any errors, there's no need to check the rest.
                     safeReports += 1;
                     break;
                 }
 
                 idxToExclude += 1;
-                subLevels.numItems = 0;
+                subReport.numItems = 0;
             }
         }
     }
