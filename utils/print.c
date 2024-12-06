@@ -9,3 +9,11 @@ void print2DIntArray(int* array, int rows, int cols) {
         printf("\n");
     }
 }
+
+// Debug printing
+// for (int r = 0; r < numRows; r += 1) {
+//     for (int c = 0; c < numCols; c += 1) {
+//         printf("%d ", originalMap[r][c]);
+//     }
+//     printf("\n");
+// }
