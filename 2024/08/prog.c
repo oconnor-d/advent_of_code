@@ -66,7 +66,7 @@ void problem1(char* inputFilePath) {
 
     // Loop through one coordinate (c, row, col) group at a time. For each coordinate, go
     // through all following matching nodes to compute the antinodes.
-    int node, checkRow, checkCol, dRow, dCol, antinodeRow, antinodeCol;
+    int node, checkRow, checkCol, dRow, dCol;
     for (int idx = 0; idx < coordinateIdx; idx += 3) {
         node = coordinates[idx];
         row = coordinates[idx + 1];
@@ -79,56 +79,17 @@ void problem1(char* inputFilePath) {
             checkRow = coordinates[checkIdx + 1];
             checkCol = coordinates[checkIdx + 2];
 
-            dRow = abs(checkRow - row);
-            dCol = abs(checkCol - col);
+            // Get the distance between the two nodes.
+            dRow = row - checkRow;
+            dCol = col - checkCol;
 
-            // First, check for the first antinode (directionally up).
+            // Check that the antinodes placed above the first node and below the second node would be in-bounds,
+            // and place them on the map if they are.
 
-            // The check-coordinate MUST be after the current one, so we'll always be subtracting the row distance
-            // from the current (going directionally up).
-
-            // Continue if we're out of bounds.
-            if (row - dRow < 0) goto node2;
-            antinodeRow = row - dRow;
-
-            // If we the check-col is to the left of the current one, we have to place the first antinode rightward.
-            if (checkCol < col) {
-                // Out of bounds.
-                if (col + dCol >= numCols) goto node2;
-
-                antinodeCol = col + dCol;
-                // Otherwise we need to place the first antinode leftward.
-            } else {
-                // Out of bounds.
-                if (col - dCol < 0) goto node2;
-
-                antinodeCol = col - dCol;
-            }
-            // If we got to this point, we have the first valid antinode, so place it.
-            map[antinodeRow][antinodeCol] = ANTINODE;
-
-        node2:
-
-            // Now, check for the second antinode (directionally down).
-            if (checkRow + dRow >= numRows) continue;
-            antinodeRow = checkRow + dRow;
-
-            // If we the check-col is to the left of the current one, we have to place the second antinode leftward.
-            if (checkCol < col) {
-                // Out of bounds.
-                if (checkCol - dCol < 0) continue;
-
-                antinodeCol = checkCol - dCol;
-                // Otherwise we need to place the second antinode rightward.
-            } else {
-                // Out of bounds.
-                if (checkCol + dCol >= numCols) continue;
-
-                antinodeCol = checkCol + dCol;
-            }
-
-            // If we got to this point, we have the second valid antinode, so place it.
-            map[antinodeRow][antinodeCol] = ANTINODE;
+            // Since the first node is always above the second, only check the upper bound.
+            if (row + dRow >= 0 && (col + dCol >= 0 && col + dCol < numCols)) map[row + dRow][col + dCol] = ANTINODE;
+            // Since the second node is always below the second, only check the lower bound.
+            if (checkRow - dRow < numRows && (checkCol - dCol >= 0 && checkCol - dCol < numCols)) map[checkRow - dRow][checkCol - dCol] = ANTINODE;
         }
     }
 
@@ -195,7 +156,7 @@ void problem2(char* inputFilePath) {
 
     // Loop through one coordinate (c, row, col) group at a time. For each coordinate, go
     // through all following matching nodes to compute the antinodes.
-    int node, checkRow, checkCol, dRow, dCol, antinodeRow, antinodeCol, loopRow, loopCol;
+    int node, checkRow, checkCol, dRow, dCol, loopRow, loopCol;
     for (int idx = 0; idx < coordinateIdx; idx += 3) {
         node = coordinates[idx];
         row = coordinates[idx + 1];
@@ -208,8 +169,8 @@ void problem2(char* inputFilePath) {
             checkRow = coordinates[checkIdx + 1];
             checkCol = coordinates[checkIdx + 2];
 
-            dRow = abs(checkRow - row);
-            dCol = abs(checkCol - col);
+            dRow = row - checkRow;
+            dCol = col - checkCol;
 
             // First, get the antinode above the first node's position (at (row, col)).
             loopRow = row;
@@ -218,31 +179,11 @@ void problem2(char* inputFilePath) {
             // While we're in bounds, keep placing antinodes above the first node, using the last placed antinode
             // as the new starting location.
             while (true) {
-                // The check-coordinate MUST be after the current one, so we'll always be subtracting the row distance
-                // from the current node (going directionally up).
+                if (loopRow + dRow < 0 || loopCol + dCol < 0 || loopCol + dCol >= numCols) break;
 
-                if (loopRow - dRow < 0) break;
-                antinodeRow = loopRow - dRow;
-                loopRow -= dRow;
-
-                // If we the check-col is to the left of the current one, we have to place the first antinode rightward.
-                if (checkCol < loopCol) {
-                    // Out of bounds.
-                    if (loopCol + dCol >= numCols) break;
-
-                    antinodeCol = loopCol + dCol;
-                    loopCol += dCol;
-                    // Otherwise we need to place the first antinode leftward.
-                } else {
-                    // Out of bounds.
-                    if (loopCol - dCol < 0) break;
-
-                    antinodeCol = loopCol - dCol;
-                    loopCol -= dCol;
-                }
-
-                // If we got to this point, we have a valid antinode, so place it.
-                map[antinodeRow][antinodeCol] = ANTINODE;
+                loopRow += dRow;
+                loopCol += dCol;
+                map[loopRow][loopCol] = ANTINODE;
             }
 
             // Then, get the antinode below the second node's position (at (checkRow, checkCol)).
@@ -251,29 +192,11 @@ void problem2(char* inputFilePath) {
 
             // While we're in bounds, keep placing antinodes below the second node.
             while (true) {
-                // Now, check for the second antinode (directionally down).
-                if (loopRow + dRow >= numRows) break;
-                antinodeRow = loopRow + dRow;
-                loopRow += dRow;
+                if (loopRow - dRow >= numRows || loopCol - dCol < 0 || loopCol - dCol >= numCols) break;
 
-                // If we the check-col is to the left of the current one, we have to place the second antinode leftward.
-                if (loopCol < col) {
-                    // Out of bounds.
-                    if (loopCol - dCol < 0) break;
-
-                    antinodeCol = loopCol - dCol;
-                    loopCol -= dCol;
-                    // Otherwise we need to place the second antinode rightward.
-                } else {
-                    // Out of bounds.
-                    if (loopCol + dCol >= numCols) break;
-
-                    antinodeCol = loopCol + dCol;
-                    loopCol += dCol;
-                }
-
-                // If we got to this point, we have a valid antinode, so place it.
-                map[antinodeRow][antinodeCol] = ANTINODE;
+                loopRow -= dRow;
+                loopCol -= dCol;
+                map[loopRow][loopCol] = ANTINODE;
             }
         }
     }
