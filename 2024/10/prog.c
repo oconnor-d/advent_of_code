@@ -98,7 +98,8 @@ void problem1(char* inputFilePath) {
                         }
                     }
 
-                    // If this TRAIL_HEAD hasn't been counted towards the score yet, count it now and
+                    // If this TRAIL_HEAD hasn't been counted towards the score yet, count it now and mark
+                    // it as already scored.
                     if (!alreadyReachedTrailEnd) {
                         insertIntArray(&scoredTrailEnds, nodeRow);
                         insertIntArray(&scoredTrailEnds, nodeCol);
