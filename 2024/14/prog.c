@@ -16,10 +16,16 @@ void problem1(char* inputFilePath) {
     warp to the other side. After that, split the robots into quadrants and multiply the robot
     counts in the quadrants.
 
+    First Attempt:
     Loop through the robots for the desired number of seconds, add positions and velocities, making
     sure to wrap them.
 
     After the robots are done moving, count up the quadrants for the final score.
+
+    Second Attempt:
+    While the above works, we can do it faster. Instead of looping through all seconds, look ahead to
+    the desired number of seconds, multiplying the velocity by the number of seconds, and keeping
+    the result in bounds of the grid with modulo.
 
     NOTE:
     I updated the given input to include the height and area of the grid, since the project description
@@ -52,45 +58,30 @@ void problem1(char* inputFilePath) {
     fclose(inputFile);
 
     // Move the robots for the set number of SECONDS.
-    int secondsPassed = 0;
     int pX, pY, vX, vY;
-    while (secondsPassed < SECONDS) {
-        // Move each robot.
-        for (int idx = 0; idx < robots.numItems; idx += 4) {
-            pX = robots.data[idx];
-            pY = robots.data[idx + 1];
-            vX = robots.data[idx + 2];
-            vY = robots.data[idx + 3];
-
-            // Move to the next position, accounting for warping to the other side.
-            pX = pX + vX;
-            if (pX >= width)
-                pX = pX - width;
-            else if (pX < 0)
-                pX = width + pX;
-
-            pY = pY + vY;
-            if (pY >= height)
-                pY = pY - height;
-            else if (pY < 0)
-                pY = height + pY;
-
-            // Store the updated positions for next loop.
-            robots.data[idx] = pX;
-            robots.data[idx + 1] = pY;
-        }
-
-        secondsPassed += 1;
-    }
-
-    // Count the robots in each quad.
+    // Keep track of where the robots end up.
     int quadNW = 0, quadNE = 0, quadSE = 0, quadSW = 0;
+    // Move each robot.
     for (int idx = 0; idx < robots.numItems; idx += 4) {
         pX = robots.data[idx];
         pY = robots.data[idx + 1];
+        vX = robots.data[idx + 2];
+        vY = robots.data[idx + 3];
+
+        // Move to the next position, accounting for warping to the other side.
+        pX = (pX + (SECONDS * vX)) % width;
+        // If our position is negative, add the grid width to bring us back in bounds.
+        if (pX < 0) pX += width;
+
+        pY = (pY + (SECONDS * vY)) % height;
+        // If our position is negative, add the grid height to bring us back in bounds.
+        if (pY < 0) pY += height;
+
+        // Now, figure out what quadrant the robot lies in.
 
         // NW
         if (pY >= 0 && pY < height / 2 && pX >= 0 && pX < width / 2) quadNW += 1;
+        
         // NE
         if (pY >= 0 && pY < height / 2 && pX > width / 2 && pX < width) quadNE += 1;
 
