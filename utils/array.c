@@ -61,6 +61,11 @@ int sumIntArray(IntArray* array) {
     return sum;
 }
 
+int popIntArray(IntArray* array) {
+    // Array must be non-empty.
+    return array->data[--array->numItems];
+}
+
 
 void printIntArray(IntArray* array) {
     printf("[Size: %zu, Items: %zu] [", array->size, array->numItems);
