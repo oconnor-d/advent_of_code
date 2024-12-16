@@ -30,9 +30,6 @@ void problem1(char* inputFilePath) {
     This attempts each move, if there's a WALL in front of the bot the movement fails, if there's an
     empty space in front of the bot it moves, and if there's one or more boxes in the front of the bot
     with an empty space at the end, we move the bot and the line of boxes.
-
-    Instead of actually moving all the boxes in a line of boxes to move, the free space at the end of
-    the line is set to a box, and the box at the start of the line is replaced with the robot.
     */
     clock_t start = clock();
 
@@ -71,73 +68,35 @@ void problem1(char* inputFilePath) {
 
     // Attempt each move, moving any boxes in the way.
     char move;
-    int boxLookAhead;
+    int vRow, vCol, endRow, endCol;
     for (int idx = 0; idx < numMoves; idx += 1) {
         move = moves[idx];
 
-        // NOTE: We don't have to out-of-bounds check, since the map has a border of walls.
+        // Get the velocity of movement (only ever moving horizontally or vertically, never both).
+        if (move == NORTH) vRow = -1, vCol = 0;
+        if (move == EAST) vRow = 0, vCol = 1;
+        if (move == SOUTH) vRow = 1, vCol = 0;
+        if (move == WEST) vRow = 0, vCol = -1;
 
-        // Attempt to move in the empty spaces.
-        if (move == NORTH && map[robotRow - 1][robotCol] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow - 1][robotCol] = ROBOT;
-            robotRow -= 1;
-        } else if (move == EAST && map[robotRow][robotCol + 1] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow][robotCol + 1] = ROBOT;
-            robotCol += 1;
-        } else if (move == SOUTH && map[robotRow + 1][robotCol] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow + 1][robotCol] = ROBOT;
-            robotRow += 1;
-        } else if (move == WEST && map[robotRow][robotCol - 1] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow][robotCol - 1] = ROBOT;
-            robotCol -= 1;
-        }
-        // If there are boxes, attempt to move the robot and line of boxes.
-        else if (move == NORTH && map[robotRow - 1][robotCol] == BOX) {
-            boxLookAhead = robotRow - 2;
-            // Follow the line of boxes until a wall or empty space is hit.
-            while (map[boxLookAhead][robotCol] == BOX) boxLookAhead -= 1;
+        // NOTE: We don't have to out-of-bounds check since the input is enclosed in a wall at the borders.
 
-            // If it's an empty space, move the boxes and robots.
-            if (map[boxLookAhead][robotCol] == EMPTY_SPACE) {
-                map[boxLookAhead][robotCol] = BOX;
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow - 1][robotCol] = ROBOT;
-                robotRow -= 1;
-            }
-        } else if (move == EAST && map[robotRow][robotCol + 1] == BOX) {
-            boxLookAhead = robotCol + 2;
-            while (map[robotRow][boxLookAhead] == BOX) boxLookAhead += 1;
-            if (map[robotRow][boxLookAhead] == EMPTY_SPACE) {
-                map[robotRow][boxLookAhead] = BOX;
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow][robotCol + 1] = ROBOT;
-                robotCol += 1;
-            }
-        } else if (move == SOUTH && map[robotRow + 1][robotCol] == BOX) {
-            boxLookAhead = robotRow + 2;
-            while (map[boxLookAhead][robotCol] == BOX) boxLookAhead += 1;
-            if (map[boxLookAhead][robotCol] == EMPTY_SPACE) {
-                map[boxLookAhead][robotCol] = BOX;
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow + 1][robotCol] = ROBOT;
-                robotRow += 1;
-            }
-        } else if (move == WEST && map[robotRow][robotCol - 1] == BOX) {
-            boxLookAhead = robotCol - 2;
-            while (map[robotRow][boxLookAhead] == BOX) boxLookAhead -= 1;
-            if (map[robotRow][boxLookAhead] == EMPTY_SPACE) {
-                map[robotRow][boxLookAhead] = BOX;
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow][robotCol - 1] = ROBOT;
-                robotCol -= 1;
-            }
+        // Keep moving in the same direction until you've hit a non-box space.
+        endRow = robotRow + vRow, endCol = robotCol + vCol;
+        while (map[endRow][endCol] == BOX) endRow += vRow, endCol += vCol;
+
+        // If the space ended on is a wall, no movement can happen.
+        if (map[endRow][endCol] == WALL) continue;
+
+        // Otherwise, move all the boxes up one direction.
+        while (endRow != robotRow || endCol != robotCol) {
+            map[endRow][endCol] = BOX;
+            endRow -= vRow, endCol -= vCol;
         }
 
-        // Otherwise, the space in the direction is a wall, and we don't move.
+        // Then, move the robot up one direction, and record it's new position.
+        map[robotRow + vRow][robotCol + vCol] = ROBOT;
+        map[robotRow][robotCol] = EMPTY_SPACE;
+        robotRow += vRow, robotCol += vCol;
     }
 
     // Tally up the score.
@@ -330,39 +289,22 @@ void problem2(char* inputFilePath) {
     fclose(inputFile);
 
     // Attempt each movement.
-    char move;
-    int boxLookAhead;
+    char move, toPlace;
+    int vRow, vCol, endRow, endCol;
     for (int idx = 0; idx < numMoves; idx += 1) {
         move = moves[idx];
 
         // NOTE: We don't have to bounds check, since the map has a border of walls.
 
-        // Attempt to move in the empty spaces, same as part 1.
-        if (move == NORTH && map[robotRow - 1][robotCol] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow - 1][robotCol] = ROBOT;
-            robotRow -= 1;
-        } else if (move == EAST && map[robotRow][robotCol + 1] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow][robotCol + 1] = ROBOT;
-            robotCol += 1;
-        } else if (move == SOUTH && map[robotRow + 1][robotCol] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow + 1][robotCol] = ROBOT;
-            robotRow += 1;
-        } else if (move == WEST && map[robotRow][robotCol - 1] == EMPTY_SPACE) {
-            map[robotRow][robotCol] = EMPTY_SPACE;
-            map[robotRow][robotCol - 1] = ROBOT;
-            robotCol -= 1;
-        }
+        // Handle the special case of a box being hit vertically.
 
-        // If there are boxes, attempt to move the robot and all connected boxes. NORTH/SOUTH movement uses the DFS approach
-        // to get all the boxes to move, while the EAST/WEST movement is the same as in part 1 (with some slight modification
-        // to place the right box characters based on what side of the box is being moved at the moment).
-
-        // If there's a box to the NORTH, attempt to move all the boxes NORTH, and if that succeeds and the space in front
-        // of the robot is now empty, move the robot.
-        else if (move == NORTH && (map[robotRow - 1][robotCol] == LEFT_BOX || map[robotRow - 1][robotCol] == RIGHT_BOX)) {
+        // If there's a box to the NORTH/SOUTH, attempt to move all the boxes NORTH/SOUTH, and if that succeeds and the space in
+        // front of the robot is now empty, move the robot.
+        //
+        // NORTH/SOUTH movement uses the DFS approach to get all the boxes to move, while the EAST/WEST movement is
+        // the same as in part 1 (with some slight modification to place the right box characters based on what
+        // side of the box is being moved at the moment).
+        if (move == NORTH && (map[robotRow - 1][robotCol] == LEFT_BOX || map[robotRow - 1][robotCol] == RIGHT_BOX)) {
             moveBoxes(map, numRows, numCols, robotRow - 1, robotCol, -1);
             // After moving boxes, attempt to move the bot.
             if (map[robotRow - 1][robotCol] == EMPTY_SPACE) {
@@ -370,30 +312,10 @@ void problem2(char* inputFilePath) {
                 map[robotRow - 1][robotCol] = ROBOT;
                 robotRow -= 1;
             }
-        } else if (move == EAST && map[robotRow][robotCol + 1] == LEFT_BOX) {
-            boxLookAhead = robotCol + 3;
-            while (map[robotRow][boxLookAhead] == LEFT_BOX || map[robotRow][boxLookAhead] == RIGHT_BOX) boxLookAhead += 1;
-            // Backtrack to the current col, moving the box characters one space. This is unlike part 1 where only the
-            // first and last spaces are updated.
-            char toPlace = RIGHT_BOX;
-            if (map[robotRow][boxLookAhead] == EMPTY_SPACE) {
-                while (boxLookAhead > robotCol) {
-                    map[robotRow][boxLookAhead] = toPlace;
+            continue;
+        }
 
-                    if (toPlace == LEFT_BOX)
-                        toPlace = RIGHT_BOX;
-                    else
-                        toPlace = LEFT_BOX;
-
-                    boxLookAhead -= 1;
-                }
-
-                // Move the robot.
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow][robotCol + 1] = ROBOT;
-                robotCol += 1;
-            }
-        } else if (move == SOUTH && (map[robotRow + 1][robotCol] == LEFT_BOX || map[robotRow + 1][robotCol] == RIGHT_BOX)) {
+        if (move == SOUTH && (map[robotRow + 1][robotCol] == LEFT_BOX || map[robotRow + 1][robotCol] == RIGHT_BOX)) {
             moveBoxes(map, numRows, numCols, robotRow + 1, robotCol, 1);
             // After moving boxes, attempt to move the bot.
             if (map[robotRow + 1][robotCol] == EMPTY_SPACE) {
@@ -401,31 +323,41 @@ void problem2(char* inputFilePath) {
                 map[robotRow + 1][robotCol] = ROBOT;
                 robotRow += 1;
             }
-        } else if (move == WEST && map[robotRow][robotCol - 1] == RIGHT_BOX) {
-            boxLookAhead = robotCol - 3;
-            while (map[robotRow][boxLookAhead] == LEFT_BOX || map[robotRow][boxLookAhead] == RIGHT_BOX) boxLookAhead -= 1;
-            // Backtrack to the current col, moving the box characters one space.
-            char toPlace = LEFT_BOX;
-            if (map[robotRow][boxLookAhead] == EMPTY_SPACE) {
-                while (boxLookAhead < robotCol) {
-                    map[robotRow][boxLookAhead] = toPlace;
-
-                    if (toPlace == LEFT_BOX)
-                        toPlace = RIGHT_BOX;
-                    else
-                        toPlace = LEFT_BOX;
-
-                    boxLookAhead += 1;
-                }
-
-                // Move the robot.
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow][robotCol - 1] = ROBOT;
-                robotCol -= 1;
-            }
+            continue;
         }
 
-        // Otherwise, the space in the direction is a wall, and we don't move.
+        // Handle the general cases (horizontal movement, or vertical movement into an empty space).
+
+        // Get the direction to move.
+        if (move == NORTH) vRow = -1, vCol = 0;
+        // If moving boxes EAST, we'd move the right edge of the last box first: @[]<-
+        if (move == EAST) vRow = 0, vCol = 1, toPlace = RIGHT_BOX;
+        if (move == SOUTH) vRow = 1, vCol = 0;
+        // If moving boxes WEST, we'd move the left edge of the last box first: ->[]@
+        if (move == WEST) vRow = 0, vCol = -1, toPlace = LEFT_BOX;
+
+        // Keep moving in the same direction until you've hit a non-box space.
+        endRow = robotRow + vRow, endCol = robotCol + vCol;
+        while (map[endRow][endCol] == LEFT_BOX || map[endRow][endCol] == RIGHT_BOX) endRow += vRow, endCol += vCol;
+
+        // If the space ended on is a wall, no movement can happen.
+        if (map[endRow][endCol] == WALL) continue;
+
+        // Otherwise, move all the boxes left/right one direction.
+        while (endRow != robotRow || endCol != robotCol) {
+            map[endRow][endCol] = toPlace;
+            endRow -= vRow, endCol -= vCol;
+
+            if (toPlace == LEFT_BOX)
+                toPlace = RIGHT_BOX;
+            else
+                toPlace = LEFT_BOX;
+        }
+
+        // Then, move the robot up one direction, and record it's new position.
+        map[robotRow + vRow][robotCol + vCol] = ROBOT;
+        map[robotRow][robotCol] = EMPTY_SPACE;
+        robotRow += vRow, robotCol += vCol;
     }
 
     // Tally up the score.
