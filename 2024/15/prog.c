@@ -296,38 +296,6 @@ void problem2(char* inputFilePath) {
 
         // NOTE: We don't have to bounds check, since the map has a border of walls.
 
-        // Handle the special case of a box being hit vertically.
-
-        // If there's a box to the NORTH/SOUTH, attempt to move all the boxes NORTH/SOUTH, and if that succeeds and the space in
-        // front of the robot is now empty, move the robot.
-        //
-        // NORTH/SOUTH movement uses the DFS approach to get all the boxes to move, while the EAST/WEST movement is
-        // the same as in part 1 (with some slight modification to place the right box characters based on what
-        // side of the box is being moved at the moment).
-        if (move == NORTH && (map[robotRow - 1][robotCol] == LEFT_BOX || map[robotRow - 1][robotCol] == RIGHT_BOX)) {
-            moveBoxes(map, numRows, numCols, robotRow - 1, robotCol, -1);
-            // After moving boxes, attempt to move the bot.
-            if (map[robotRow - 1][robotCol] == EMPTY_SPACE) {
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow - 1][robotCol] = ROBOT;
-                robotRow -= 1;
-            }
-            continue;
-        }
-
-        if (move == SOUTH && (map[robotRow + 1][robotCol] == LEFT_BOX || map[robotRow + 1][robotCol] == RIGHT_BOX)) {
-            moveBoxes(map, numRows, numCols, robotRow + 1, robotCol, 1);
-            // After moving boxes, attempt to move the bot.
-            if (map[robotRow + 1][robotCol] == EMPTY_SPACE) {
-                map[robotRow][robotCol] = EMPTY_SPACE;
-                map[robotRow + 1][robotCol] = ROBOT;
-                robotRow += 1;
-            }
-            continue;
-        }
-
-        // Handle the general cases (horizontal movement, or vertical movement into an empty space).
-
         // Get the direction to move.
         if (move == NORTH) vRow = -1, vCol = 0;
         // If moving boxes EAST, we'd move the right edge of the last box first: @[]<-
@@ -335,6 +303,29 @@ void problem2(char* inputFilePath) {
         if (move == SOUTH) vRow = 1, vCol = 0;
         // If moving boxes WEST, we'd move the left edge of the last box first: ->[]@
         if (move == WEST) vRow = 0, vCol = -1, toPlace = LEFT_BOX;
+
+        // Handle the special case of a box being hit vertically.
+        //
+        // If there's a box to the NORTH/SOUTH, attempt to move all the boxes NORTH/SOUTH, and if that succeeds and the space in
+        // front of the robot is now empty, move the robot.
+        //
+        // NORTH/SOUTH movement uses the DFS approach to get all the boxes to move, while the EAST/WEST movement is
+        // the same as in part 1 (with some slight modification to place the right box characters based on what
+        // side of the box is being moved at the moment).
+        if ((move == NORTH || move == SOUTH) &&
+            (map[robotRow + vRow][robotCol + vCol] == LEFT_BOX ||
+             map[robotRow + vRow][robotCol + vCol] == RIGHT_BOX)) {
+            moveBoxes(map, numRows, numCols, robotRow + vRow, robotCol, vRow);
+            // After moving boxes, attempt to move the bot.
+            if (map[robotRow + vRow][robotCol] == EMPTY_SPACE) {
+                map[robotRow][robotCol] = EMPTY_SPACE;
+                map[robotRow + vRow][robotCol] = ROBOT;
+                robotRow += vRow;
+            }
+            continue;
+        }
+
+        // Handle the general cases (horizontal movement, or vertical movement into an empty space).
 
         // Keep moving in the same direction until you've hit a non-box space.
         endRow = robotRow + vRow, endCol = robotCol + vCol;
