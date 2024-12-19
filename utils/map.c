@@ -114,7 +114,6 @@ bool getMap(Map* map, char* key, char** value) {
     return true;
 }
 
-
 /*
 LLongMap
 */
@@ -179,7 +178,6 @@ static void growLLongMap(LLongMap* map) {
     map->entries = newEntries;
     map->capacity = newCapacity;
 }
-
 
 bool setLLongMap(LLongMap* map, char* key, long long value) {
     // Grow the map if need be.

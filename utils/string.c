@@ -59,35 +59,47 @@ long long parseNumber(char* string, int startIdx, int* endIdx) {
     return 0;
 }
 
-// TODO: Implement proper edge case handling before using, like: "    ".
 /**
- * Gets the first whole word from `string`, if any is present. The `startIdx` and `endIdx`
- * will hold the starting and ending index of the found word.
+ * Parses the first word in the given string starting from `startIdx` (inclusive). The idx (exclusive) of
+ * the end of the parsed number is stored in `endIdx`.
  *
- * A word is a continuous set of non-empty and non-newline chars.
+ * If no word is found, returns NULL and -1 is stored in `endIdx`. To check for successful parsing, you
+ * MUST check that `endIdx` isn't -1.
+ *
+ * Args:
+ *  string (char*): the string to parse.
+ *  startIdx (int): the index to start looking from (inclusive).
+ *  endIdx (*int): the pointer to store the end index (exclusive) of the found word.
  */
-char* parseFirstWord(char* string, int* startIdx, int* endIdx) {
-    char* firstWord = string;
-    bool wordStarted = false;
-    int idx, firstWordIdx = 0;
-    for (idx = 0; idx < strlen(string); idx += 1) {
-        if (wordStarted && (string[idx] == ' ' || string[idx] == '\n')) {
-            *endIdx = idx;
-            firstWord[firstWordIdx] = '\0';
-            return firstWord;
-        } else if (!wordStarted && (string[idx] == ' ' || string[idx] == '\n')) {
-            wordStarted = true;
-            *startIdx = idx;
-        } else {
-            wordStarted = true;
-            firstWord[firstWordIdx] = string[idx];
-            firstWordIdx += 1;
-        }
-    };
+char* parseWord(char* string, int startIdx, int* endIdx) {
+    char* strPtr = string + startIdx;
 
-    *endIdx = idx;
-    firstWord[firstWordIdx] = '\0';
-    return firstWord;
+    while (*strPtr) {
+        if (isalpha(*strPtr)) {
+            char* wordStart = strPtr;
+
+            while (*strPtr && isalpha(*strPtr)) strPtr += 1;
+
+            char* word = malloc(strPtr - wordStart + 1);
+            memcpy(word, wordStart, strPtr - wordStart + 1);
+            word[strPtr - wordStart] = '\0';
+            *endIdx = strPtr - string;
+
+            return word;
+        } else {
+            strPtr += 1;
+        }
+    }
+
+    *endIdx = -1;
+    return NULL;
+}
+
+/**
+ * Does the given `str` start with the given `prefix`?
+ */
+bool startsWith(char* str, char* prefix) {
+    return strncmp(str, prefix, strlen(prefix)) == 0;
 }
 
 /**
