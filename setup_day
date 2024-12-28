@@ -1,14 +1,14 @@
 #!/bin/zsh
 
-if [ "$#" -ne 1 ]; then
-    echo "Given invalid arguments, provide a single positional argument for the day number."
+if [ "$#" -ne 2 ]; then
+    echo "Given invalid arguments, provide a positional argument for the year and day number."
     exit
 fi
 
 SCRIPT_PATH="${0:A:h}"
 
-YEAR_NUMBER="2025"
-DAY_NUMBER="$1"
+YEAR_NUMBER="$1"
+DAY_NUMBER="$2"
 NEW_FOLDER="$SCRIPT_PATH/$YEAR_NUMBER/$DAY_NUMBER/"
 
 if [ -d "$NEW_FOLDER" ]; then
