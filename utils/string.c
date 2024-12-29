@@ -96,6 +96,30 @@ char* parseWord(char* string, int startIdx, int* endIdx) {
 }
 
 /**
+ * Parses the substring in the given string starting from `startIdx` (inclusive) until the stop-at character, newline,
+ * or EOF. The idx (exclusive) of the end of the parsed number is stored in `endIdx`.
+ *
+ * Args:
+ *  string (char*): the string to parse.
+ *  startIdx (int): the index to start looking from (inclusive).
+ *  endIdx (*int): the pointer to store the end index (exclusive) of the found word.
+ *  stopAt (char*): the character to stop at (exclusive).
+ */
+char* parseUntil(char* string, int startIdx, int* endIdx, char stopAt) {
+    char* strPtr = string + startIdx;
+    char* wordStart = strPtr;
+
+    while (*strPtr && *strPtr != stopAt && *strPtr != '\n') strPtr += 1;
+
+    char* word = malloc(strPtr - wordStart + 1);
+    memcpy(word, wordStart, strPtr - wordStart + 1);
+    word[strPtr - wordStart] = '\0';
+    *endIdx = strPtr - string;
+
+    return word;
+}
+
+/**
  * Does the given `str` start with the given `prefix`?
  */
 bool startsWith(char* str, char* prefix) {
