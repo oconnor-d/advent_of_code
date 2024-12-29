@@ -12,6 +12,61 @@ An Intcode Computer.
 // The max number of parameters any opcode has.
 #define MAX_OPCODE_PARAMETERS 3
 
+typedef enum OpCode {
+    // Adds the first two parameters, and store the result at the index
+    // given by the third number.
+    ADD = 1,
+    // Multiplies the first two parameters, and store the result at the index
+    // given by the third number.
+    MULTIPLY = 2,
+    // Stores the next input at the address of it's only parameter.
+    STORE_INPUT = 3,
+    // Outputs the value of it's only parameter.
+    OUTPUT = 4,
+    // Jumps to the address of the second parameter iff the first is non-zero.
+    JUMP_IF_TRUE = 5,
+    // Jumps to the address of the second parameter iff the first is zero.
+    JUMP_IF_FALSE = 6,
+    // Stores 1 in the third parameter address if the first is less than the second, 0 otherwise.
+    LESS_THAN = 7,
+    // Stores 1 in the third parameter address if the first is equal to the second, 0 otherwise.
+    EQUALS = 8,
+    // Immediately exit the program.
+    EXIT = 99,
+} OpCode;
+
+// clang-format off
+// The lengths of each instruction's parameter list, not including the opcode itself.
+int INSTRUCTION_PARAMETER_LENGTHS[100] = {
+    0, 3, 3, 1, 1, 2, 2, 3, 3, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+// The index of an opcode's output parameter, if it has one.
+int INSTRUCTION_OUTPUT_PARAMETER_INDEXES[100] = {
+    -1, 2, 2, 0, 0, -1, -1, 2, 2, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+};
+// clang-format on
+
+// ================================ Data ================================
+
 /*
 The mode an opcode's parameters should be evaluated in.
 
@@ -42,46 +97,13 @@ typedef struct {
 
     int size;
     int instructionPointer;
+
+    int inputPointer;
+    IntArray input;
+    IntArray output;
 } IntCodeProgram;
 
-// Add the numbers indexed by the following two numbers, and store the result at the index
-// given by the third number.
-#define ADD 1
-// Multiply the numbers indexed by the following two numbers, and store the result at the index
-// given by the third number.
-#define MULTIPLY 2
-// Immediately exit the Intcode program.
-#define EXIT 99
-
-// clang-format off
-// The lengths of each instruction's parameter list, not including the opcode itself.
-int INSTRUCTION_PARAMETER_LENGTHS[100] = {
-    0, 3, 3, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-// The index of an opcode's output parameter, if it has one.
-int INSTRUCTION_OUTPUT_PARAMETER_INDEXES[100] = {
-    -1, 2, 2, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-};
-// clang-format on
+// ================================ Functions ================================
 
 void printIntCodeProgram(IntCodeProgram* program) {
     /*
@@ -117,6 +139,11 @@ void initIntCodeProgramFromIntArray(IntCodeProgram* program, IntArray* array) {
 
     program->size = array->numItems;
     program->instructionPointer = 0;
+
+    initIntArray(&program->input, 1024);
+    initIntArray(&program->output, 1024);
+
+    program->inputPointer = 0;
 }
 
 void initIntCodeProgramFromFile(IntCodeProgram* program, char* inputFilePath) {
@@ -148,6 +175,10 @@ void freeIntCodeProgram(IntCodeProgram* program) {
 
     program->size = 0;
     program->instructionPointer = 0;
+
+    freeIntArray(&program->input);
+    freeIntArray(&program->output);
+    program->inputPointer = 0;
 }
 
 int getOpcode(IntCodeProgram* program, ParameterMode* parameterModes) {
@@ -243,6 +274,19 @@ void intcodeRun(IntCodeProgram* program) {
             program->memory[parameters[2]] = parameters[0] + parameters[1];
         } else if (opcode == MULTIPLY) {
             program->memory[parameters[2]] = parameters[0] * parameters[1];
+        } else if (opcode == STORE_INPUT) {
+            program->memory[parameters[0]] = program->input.data[program->inputPointer];
+            program->inputPointer += 1;
+        } else if (opcode == OUTPUT) {
+            insertIntArray(&program->output, program->memory[parameters[0]]);
+        } else if (opcode == JUMP_IF_TRUE) {
+            if (parameters[0] != 0) program->instructionPointer = parameters[1];
+        } else if (opcode == JUMP_IF_FALSE) {
+            if (parameters[0] == 0) program->instructionPointer = parameters[1];
+        } else if (opcode == LESS_THAN) {
+            program->memory[parameters[2]] = parameters[0] < parameters[1] ? 1 : 0;
+        } else if (opcode == EQUALS) {
+            program->memory[parameters[2]] = parameters[0] == parameters[1] ? 1 : 0;
         } else if (opcode == EXIT) {
             // Immediately halt the program.
             return;
