@@ -5,6 +5,24 @@ An Intcode program is a list of integers representing opcodes and parameters for
 on. For example, 1,0,0,2,1,3,99 is an Intcode Program.
 
 Refer to the struct and `intcodeRun` docs for more details on how an Intcode program works.
+
+To run an Intcode program from a file with custom input:
+
+char* filePath = "test.intcode"
+
+// Load the file into the program.
+IntCodeProgram program;
+initIntCodeProgramFromFile(&program, filePath);
+
+// Pass in some input value.  TODO: make pushInput(&program, 1) function.
+insertLLongArray(&program.input, 1);
+
+// Run the program.
+intcodeRun(&program);
+
+// See any output.
+printLLongArray(&program.output);
+
 */
 
 #include <stdbool.h>
@@ -21,7 +39,7 @@ Refer to the struct and `intcodeRun` docs for more details on how an Intcode pro
 // clang-format off
 // The lengths of each instruction's parameter list, not including the opcode itself.
 int INSTRUCTION_PARAMETER_LENGTHS[100] = {
-    0, 3, 3, 1, 1, 2, 2, 3, 3, 0,
+    0, 3, 3, 1, 1, 2, 2, 3, 3, 1,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -35,7 +53,7 @@ int INSTRUCTION_PARAMETER_LENGTHS[100] = {
 
 // The index of an opcode's output parameter, if it has one.
 int INSTRUCTION_OUTPUT_PARAMETER_INDEXES[100] = {
-    -1, 2, 2, 0, 0, -1, -1, 2, 2, -1,
+    -1,  2,  2,  0, -1, -1, -1,  2,  2, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -69,6 +87,9 @@ typedef enum OpCode {
     LESS_THAN = 7,
     // Stores 1 in the third parameter address if the first is equal to the second, 0 otherwise.
     EQUALS = 8,
+    // Increases (or decreases if it's parameter is negative) the relative base for the RELATIVE parameter mode
+    // by the value of it's only parameter.
+    ADJUST_RELATIVE_BASE = 9,
     // Immediately exit the program.
     EXIT = 99,
 } OpCode;
@@ -80,6 +101,19 @@ Parameter Modes for each parameter for an opcode is stored in the same value as 
 The right-most two digits in the instruction are the opcode, and going left each digit is
 the mode of the parameter. Going left after the opcode, each digit is the mode of the next
 parameter. If there's no digit for a parameter, the mode defaults to 0.
+
+POSITION:
+The parameter value resolves to the value in the parameter's index of memory. So in POSITION
+parameter mode, 3 would resolve to program->memory[3].
+
+IMMEDIATE:
+The parameter value resolves to itself. So in IMMEDIATE parameter mode, 3 would resolve to 3.
+
+RELATIVE:
+The parameter value resolves to the value in the parameter's index of memory, plus the current
+`relativeBase` of the program. The value of `relativeBase` is modified via other opcodes, like
+ADJUST_RELATIVE_BASE. So in RELATIVE parameter mode with a current relative base of 7, 3 would
+resolve to program->memory[10].
 
 Example:
 
@@ -95,6 +129,7 @@ DE - two-digit opcode,      02 == opcode 2
 typedef enum ParameterMode {
     POSITION = 0,
     IMMEDIATE = 1,
+    RELATIVE = 2,
 } ParameterMode;
 
 /*
@@ -110,6 +145,12 @@ evaluated.
 If a program hits the EXIT opcode, it is marked as `halted`. There are times when the program stops
 running without fully halting, like when it's waiting on input.
 
+Memory:
+
+The program's memory is initialized to the values of the program itself. As the program is run, the memory
+is expanded as needed. When a new block of memory is allocated, all the values in it are initialized to
+0. Accessing memory outside of the current allocated memory triggers the resize.
+
 I/O:
 
 The `input` and `output` buffers handle the program's I/O. The input stores all current input to the
@@ -117,17 +158,20 @@ program, and the `inputPointer` points to the next input to consume (like for a 
 The output stores all outputted, with the most recent output being the last element in the buffer.
 */
 typedef struct {
-    int* program;
-    int* memory;
+    size_t programSize;
+    long long* program;
 
-    int size;
-    int instructionPointer;
+    size_t memorySize;
+    long long* memory;
+
+    size_t instructionPointer;
     // If the program is halted, i.e. hit opcode 99 or has not yet been run, or not.
     bool halted;
+    size_t relativeBase;
 
-    int inputPointer;
-    IntArray input;
-    IntArray output;
+    size_t inputPointer;
+    LLongArray input;
+    LLongArray output;
 } IntCodeProgram;
 
 // ================================ Functions ================================
@@ -136,48 +180,54 @@ void printIntCodeProgram(IntCodeProgram* program) {
     /*
     Nicely displays an intcode program and it's memory.
     */
-    printf("[Size=%d, Instruction Pointer=%d, Halted=%d]\n", program->size, program->instructionPointer, program->halted);
+    printf("[Size=%zu, Instruction Pointer=%zu, Halted=%d, Relative Base=%zu]\n", program->programSize, program->instructionPointer, program->halted, program->relativeBase);
     printf("Program: [");
-    for (int idx = 0; idx < program->size; idx += 1) {
-        if (idx == program->size - 1)
-            printf("%d", program->program[idx]);
+    for (size_t idx = 0; idx < program->programSize; idx += 1) {
+        if (idx == program->programSize - 1)
+            printf("%lld", program->program[idx]);
         else
-            printf("%d, ", program->program[idx]);
+            printf("%lld, ", program->program[idx]);
     }
     printf("]\n");
     printf("Memory:  [");
-    for (int idx = 0; idx < program->size; idx += 1) {
+    for (size_t idx = 0; idx < program->memorySize; idx += 1) {
         if (idx == program->instructionPointer) printf("->");
-        if (idx == program->size - 1)
-            printf("%d", program->memory[idx]);
+        if (idx == program->memorySize - 1)
+            printf("%lld", program->memory[idx]);
         else
-            printf("%d, ", program->memory[idx]);
+            printf("%lld, ", program->memory[idx]);
     }
     printf("]\n");
 
     printf("Input: ");
-    printIntArray(&program->input);
+    printLLongArray(&program->input);
 
     printf("Output: ");
-    printIntArray(&program->input);
+    printLLongArray(&program->output);
     printf("\n");
 }
 
-void initIntCodeProgramFromIntArray(IntCodeProgram* program, IntArray* array) {
+void initIntCodeProgramFromLLongArray(IntCodeProgram* program, LLongArray* array) {
     /*
     Initializes an intcode program from the given integer array.
     */
-    program->program = malloc(array->numItems * sizeof(int));
-    for (int idx = 0; idx < array->numItems; idx += 1) program->program[idx] = array->data[idx];
-    program->memory = malloc(array->numItems * sizeof(int));
+    program->programSize = array->numItems;
+    program->program = malloc(program->programSize * sizeof(long long));
+    for (size_t idx = 0; idx < array->numItems; idx += 1) program->program[idx] = array->data[idx];
 
-    program->size = array->numItems;
+    // Allocate twice as much memory as the original program takes to start. More gets allocated when
+    // need as the program runs.
+    program->memorySize = array->numItems * 2;
+    program->memory = malloc(program->memorySize * sizeof(long long));
+
     program->instructionPointer = 0;
     // A never-before-run program starts off as halted, until it's run for the first time.
     program->halted = true;
+    // Relative mode starts at a base of 0 until adjusted by the ADJUST_RELATIVE_BASE instruction.
+    program->relativeBase = 0;
 
-    initIntArray(&program->input, 1024);
-    initIntArray(&program->output, 1024);
+    initLLongArray(&program->input, 1024);
+    initLLongArray(&program->output, 1024);
 
     program->inputPointer = 0;
 }
@@ -185,22 +235,23 @@ void initIntCodeProgramFromIntArray(IntCodeProgram* program, IntArray* array) {
 void initIntCodeProgramFromFile(IntCodeProgram* program, char* inputFilePath) {
     /*
     Initializes an intcode program from a file containing the program as a comma-separated list
-    of integers, like: 1, 2, 0, 15, 23, ...
+    of integers, like: 1,2,0,15,23,...
     */
     FILE* inputFile = fopen(inputFilePath, "r");
     char* line = NULL;
     size_t lineCap = 0;
     ssize_t lineLen;
 
-    IntArray input;
-    initIntArray(&input, 500);
+    LLongArray input;
+    initLLongArray(&input, 500);
     lineLen = getline(&line, &lineCap, inputFile);
 
+    // TODO: This should technically be size_t to handle large files.
     int parserEndIdx = 0;
-    while (parserEndIdx < lineLen - 1) insertIntArray(&input, parseNumber(line, parserEndIdx, &parserEndIdx));
+    while (parserEndIdx < lineLen - 1) insertLLongArray(&input, parseNumber(line, parserEndIdx, &parserEndIdx));
     fclose(inputFile);
 
-    initIntCodeProgramFromIntArray(program, &input);
+    initIntCodeProgramFromLLongArray(program, &input);
 }
 
 void freeIntCodeProgram(IntCodeProgram* program) {
@@ -212,11 +263,12 @@ void freeIntCodeProgram(IntCodeProgram* program) {
     free(program->memory);
     program->memory = NULL;
 
-    program->size = 0;
+    program->programSize = 0;
+    program->memorySize = 0;
     program->instructionPointer = 0;
 
-    freeIntArray(&program->input);
-    freeIntArray(&program->output);
+    freeLLongArray(&program->input);
+    freeLLongArray(&program->output);
     program->inputPointer = 0;
 }
 
@@ -229,7 +281,7 @@ int getOpcode(IntCodeProgram* program, ParameterMode* parameterModes) {
 
     The instruction pointer MUST be pointing at an opcode.
     */
-    int instruction = program->memory[program->instructionPointer];
+    long long instruction = program->memory[program->instructionPointer];
 
     // If the instruction is only one or two digits, the opcode is the instruction and the parameter
     // modes are the implicit POSITION mode.
@@ -257,7 +309,7 @@ int getOpcode(IntCodeProgram* program, ParameterMode* parameterModes) {
     return opcode;
 }
 
-int resolveNextInstruction(IntCodeProgram* program, ParameterMode* parameterModes, int* parameters) {
+int resolveNextInstruction(IntCodeProgram* program, ParameterMode* parameterModes, long long* parameters) {
     /*
     Resolves the instruction the pointer is currently on, getting the opcode and storing the mode-evaluated
     parameters for the opcode in the parameter array.
@@ -273,17 +325,45 @@ int resolveNextInstruction(IntCodeProgram* program, ParameterMode* parameterMode
     for (int idx = 0; idx < INSTRUCTION_PARAMETER_LENGTHS[opcode]; idx += 1) {
         if (INSTRUCTION_OUTPUT_PARAMETER_INDEXES[opcode] == idx) {
             // Return the actual output index, since the opcode handles storing it.
-            parameters[idx] = program->memory[program->instructionPointer];
+            if (parameterModes[idx] == RELATIVE) {
+                parameters[idx] = program->relativeBase + program->memory[program->instructionPointer];
+            } else {
+                parameters[idx] = program->memory[program->instructionPointer];
+            }
+
         } else if (parameterModes[idx] == POSITION) {
             parameters[idx] = program->memory[program->memory[program->instructionPointer]];
         } else if (parameterModes[idx] == IMMEDIATE) {
             parameters[idx] = program->memory[program->instructionPointer];
+        } else if (parameterModes[idx] == RELATIVE) {
+            parameters[idx] = program->memory[program->relativeBase + program->memory[program->instructionPointer]];
         }
 
         program->instructionPointer += 1;
     }
 
     return opcode;
+}
+
+// TODO: Make a sister getFromMemory function, which returns 0 if indexing outside of the currently
+// allocated memory.
+void storeInMemory(IntCodeProgram* program, size_t idx, long long value) {
+    /*
+    Stores the value in program memory at the given idx, allocating more memory if needed.
+
+    If the given idx is outside of the currently allocated memory, the memory space will double
+    until it's sufficiently large. All new memory is initialized to 0.
+    */
+    if (idx >= program->memorySize) {
+        size_t originalMemorySize = program->memorySize;
+        // Allocate more memory, doubling it until it's greater than the necessary idx.
+        while (program->memorySize < idx) program->memorySize *= 2;
+        program->memory = realloc(program->memory, program->memorySize * sizeof(long long));
+
+        for (size_t mIdx = originalMemorySize; mIdx < program->memorySize; mIdx += 1) program->memory[mIdx] = 0;
+    }
+
+    program->memory[idx] = value;
 }
 
 void intcodeRun(IntCodeProgram* program) {
@@ -298,29 +378,33 @@ void intcodeRun(IntCodeProgram* program) {
     // will be run from the instruction pointer it left off at.
     if (program->halted) {
         // Copy the program into memory.
-        for (int idx = 0; idx < program->size; idx += 1) program->memory[idx] = program->program[idx];
+        for (size_t idx = 0; idx < program->programSize; idx += 1) program->memory[idx] = program->program[idx];
+        // Reset the remaining memory to 0.
+        for (size_t idx = program->programSize; idx < program->memorySize; idx += 1) program->memory[idx] = 0;
 
         // Reset pointers and output.
         program->inputPointer = 0;
         program->output.numItems = 0;
         program->instructionPointer = 0;
         program->halted = false;
+        program->relativeBase = 0;
     }
 
     // The opcode being processed.
     int opcode;
     // Potential opcode parameters and the modes they were evaluated in.
     ParameterMode parameterModes[MAX_OPCODE_PARAMETERS];
-    int parameters[MAX_OPCODE_PARAMETERS];
-    while (program->instructionPointer >= 0 && program->instructionPointer < program->size) {
+    long long parameters[MAX_OPCODE_PARAMETERS];
+    // The instructionPointer should never be negative for a valid intcode program. This may as well be `while(true)`.
+    while (program->instructionPointer >= 0) {
         // Resolve the next instruction - getting the opcode, storing the parameter values already evaluated
         // as per their mode, and advancing the instruction pointer to the start of the next instruction.
         opcode = resolveNextInstruction(program, parameterModes, parameters);
 
         if (opcode == ADD) {
-            program->memory[parameters[2]] = parameters[0] + parameters[1];
+            storeInMemory(program, parameters[2], parameters[0] + parameters[1]);
         } else if (opcode == MULTIPLY) {
-            program->memory[parameters[2]] = parameters[0] * parameters[1];
+            storeInMemory(program, parameters[2], parameters[0] * parameters[1]);
         } else if (opcode == STORE_INPUT) {
             if (program->inputPointer >= program->input.numItems) {
                 // Waiting on input. Reset the pointer to the start of this instruction and return early. The
@@ -329,18 +413,20 @@ void intcodeRun(IntCodeProgram* program) {
                 return;
             }
 
-            program->memory[parameters[0]] = program->input.data[program->inputPointer];
+            storeInMemory(program, parameters[0], program->input.data[program->inputPointer]);
             program->inputPointer += 1;
         } else if (opcode == OUTPUT) {
-            insertIntArray(&program->output, program->memory[parameters[0]]);
+            insertLLongArray(&program->output, parameters[0]);
         } else if (opcode == JUMP_IF_TRUE) {
             if (parameters[0] != 0) program->instructionPointer = parameters[1];
         } else if (opcode == JUMP_IF_FALSE) {
             if (parameters[0] == 0) program->instructionPointer = parameters[1];
         } else if (opcode == LESS_THAN) {
-            program->memory[parameters[2]] = parameters[0] < parameters[1] ? 1 : 0;
+            storeInMemory(program, parameters[2], parameters[0] < parameters[1] ? 1 : 0);
         } else if (opcode == EQUALS) {
-            program->memory[parameters[2]] = parameters[0] == parameters[1] ? 1 : 0;
+            storeInMemory(program, parameters[2], parameters[0] == parameters[1] ? 1 : 0);
+        } else if (opcode == ADJUST_RELATIVE_BASE) {
+            program->relativeBase += parameters[0];
         } else if (opcode == EXIT) {
             // Immediately halt the program, and mark it as halted.
             program->halted = true;

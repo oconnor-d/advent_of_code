@@ -5,16 +5,23 @@
 #include "../../utils/intcode.c"
 
 void problem1(char* inputFilePath) {
+    /*
+    All of this problem was handled by adding to and updating how the IntCode interpreter works.
+
+        1. Introduce RELATIVE parameter mode.
+        2. Introduce dynamic memory, increasing the memory if indexing out of bounds of the current
+           allocated memory space.
+        3. Handle large numbers. This meant refactoring intcode and previous problems to use long long
+           and LLongArrays instead of ints and IntArrays.
+
+    Once that was done, run the input program with value 1 and report it's only output.
+    */
     clock_t start = clock();
 
-    // Load the program.
     IntCodeProgram program;
     initIntCodeProgramFromFile(&program, inputFilePath);
 
-    // Add the input.
     insertLLongArray(&program.input, 1);
-
-    // Run the program.
     intcodeRun(&program);
 
     clock_t end = clock();
@@ -22,16 +29,15 @@ void problem1(char* inputFilePath) {
 }
 
 void problem2(char* inputFilePath) {
+    /*
+    Same as part 1, but with 2 as the input value.
+    */
     clock_t start = clock();
 
-    // Load the program.
     IntCodeProgram program;
     initIntCodeProgramFromFile(&program, inputFilePath);
 
-    // Add the input.
-    insertLLongArray(&program.input, 5);
-
-    // Run the program.
+    insertLLongArray(&program.input, 2);
     intcodeRun(&program);
 
     clock_t end = clock();

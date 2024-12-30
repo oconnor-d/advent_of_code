@@ -10,7 +10,7 @@ void problem1(char* inputFilePath) {
     IntCodeProgram program;
     initIntCodeProgramFromFile(&program, inputFilePath);
 
-    int maxSignal = -1;
+    long long maxSignal = -1;
 
     // Try all valid combinations of input signals (0-4).
     for (int a = 0; a <= 4; a += 1) {
@@ -32,32 +32,32 @@ void problem1(char* inputFilePath) {
 
                         // Amp A
                         program.input.numItems = 0;
-                        insertIntArray(&program.input, a);
-                        insertIntArray(&program.input, 0);
+                        insertLLongArray(&program.input, a);
+                        insertLLongArray(&program.input, 0);
                         intcodeRun(&program);
 
                         // Amp B
                         program.input.numItems = 0;
-                        insertIntArray(&program.input, b);
-                        insertIntArray(&program.input, program.output.data[0]);
+                        insertLLongArray(&program.input, b);
+                        insertLLongArray(&program.input, program.output.data[0]);
                         intcodeRun(&program);
 
                         // Amp C
                         program.input.numItems = 0;
-                        insertIntArray(&program.input, c);
-                        insertIntArray(&program.input, program.output.data[0]);
+                        insertLLongArray(&program.input, c);
+                        insertLLongArray(&program.input, program.output.data[0]);
                         intcodeRun(&program);
 
                         // Amp D
                         program.input.numItems = 0;
-                        insertIntArray(&program.input, d);
-                        insertIntArray(&program.input, program.output.data[0]);
+                        insertLLongArray(&program.input, d);
+                        insertLLongArray(&program.input, program.output.data[0]);
                         intcodeRun(&program);
 
                         // Amp E
                         program.input.numItems = 0;
-                        insertIntArray(&program.input, e);
-                        insertIntArray(&program.input, program.output.data[0]);
+                        insertLLongArray(&program.input, e);
+                        insertLLongArray(&program.input, program.output.data[0]);
                         intcodeRun(&program);
 
                         if (program.output.data[0] > maxSignal) maxSignal = program.output.data[0];
@@ -68,7 +68,7 @@ void problem1(char* inputFilePath) {
     }
 
     clock_t end = clock();
-    printf("Problem 01: %d [%.2fms]\n", maxSignal, (double)(end - start) / CLOCKS_PER_SEC * 1000);
+    printf("Problem 01: %lld [%.2fms]\n", maxSignal, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 void problem2(char* inputFilePath) {
@@ -93,9 +93,9 @@ void problem2(char* inputFilePath) {
     initIntCodeProgramFromFile(&ampDProgram, inputFilePath);
     initIntCodeProgramFromFile(&ampEProgram, inputFilePath);
 
-    int maxSignal = -1;
+    long long maxSignal = -1;
 
-    int previousSignal;
+    long long previousSignal;
     // Try all valid combinations of input signals (5-9).
     for (int a = 5; a <= 9; a += 1) {
         for (int b = 5; b <= 9; b += 1) {
@@ -113,19 +113,19 @@ void problem2(char* inputFilePath) {
 
                         // Initialize the phase signals for each amp.
                         ampAProgram.input.numItems = 0;
-                        insertIntArray(&ampAProgram.input, a);
+                        insertLLongArray(&ampAProgram.input, a);
 
                         ampBProgram.input.numItems = 0;
-                        insertIntArray(&ampBProgram.input, b);
+                        insertLLongArray(&ampBProgram.input, b);
 
                         ampCProgram.input.numItems = 0;
-                        insertIntArray(&ampCProgram.input, c);
+                        insertLLongArray(&ampCProgram.input, c);
 
                         ampDProgram.input.numItems = 0;
-                        insertIntArray(&ampDProgram.input, d);
+                        insertLLongArray(&ampDProgram.input, d);
 
                         ampEProgram.input.numItems = 0;
-                        insertIntArray(&ampEProgram.input, e);
+                        insertLLongArray(&ampEProgram.input, e);
 
                         // Until the Amp E program halts, keep running the array of amp programs, feeding the output
                         // of the previous amp into the next one in the chain, with E looping back into A.
@@ -133,23 +133,23 @@ void problem2(char* inputFilePath) {
                         // As per the problem, Amp A first starts with a signal of 0 to kick things off.
                         previousSignal = 0;
                         do {
-                            insertIntArray(&ampAProgram.input, previousSignal);
+                            insertLLongArray(&ampAProgram.input, previousSignal);
                             intcodeRun(&ampAProgram);
                             previousSignal = ampAProgram.output.data[ampAProgram.output.numItems - 1];
 
-                            insertIntArray(&ampBProgram.input, previousSignal);
+                            insertLLongArray(&ampBProgram.input, previousSignal);
                             intcodeRun(&ampBProgram);
                             previousSignal = ampBProgram.output.data[ampBProgram.output.numItems - 1];
 
-                            insertIntArray(&ampCProgram.input, previousSignal);
+                            insertLLongArray(&ampCProgram.input, previousSignal);
                             intcodeRun(&ampCProgram);
                             previousSignal = ampCProgram.output.data[ampCProgram.output.numItems - 1];
 
-                            insertIntArray(&ampDProgram.input, previousSignal);
+                            insertLLongArray(&ampDProgram.input, previousSignal);
                             intcodeRun(&ampDProgram);
                             previousSignal = ampDProgram.output.data[ampDProgram.output.numItems - 1];
 
-                            insertIntArray(&ampEProgram.input, previousSignal);
+                            insertLLongArray(&ampEProgram.input, previousSignal);
                             intcodeRun(&ampEProgram);
                             previousSignal = ampEProgram.output.data[ampEProgram.output.numItems - 1];
                         } while (!ampEProgram.halted);
@@ -163,7 +163,7 @@ void problem2(char* inputFilePath) {
     }
 
     clock_t end = clock();
-    printf("Problem 02: %d [%.2fms]\n", maxSignal, (double)(end - start) / CLOCKS_PER_SEC * 1000);
+    printf("Problem 02: %lld [%.2fms]\n", maxSignal, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 /*

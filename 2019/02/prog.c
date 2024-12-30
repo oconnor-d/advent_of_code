@@ -20,7 +20,7 @@ void problem1(char* inputFilePath) {
     intcodeRun(&program);
 
     clock_t end = clock();
-    printf("Problem 01: %d [%.2fms]\n", program.memory[0], (double)(end - start) / CLOCKS_PER_SEC * 1000);
+    printf("Problem 01: %lld [%.2fms]\n", program.memory[0], (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 int nounVerbOutput(IntCodeProgram* program) {
