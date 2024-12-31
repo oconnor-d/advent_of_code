@@ -434,3 +434,10 @@ void intcodeRun(IntCodeProgram* program) {
         }
     }
 }
+
+void pushInput(IntCodeProgram* program, long long input) {
+    /*
+    Pushes the given input to the top of the input buffer.
+    */
+    insertLLongArray(&program->input, input);
+}
