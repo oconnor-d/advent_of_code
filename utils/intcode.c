@@ -14,8 +14,8 @@ char* filePath = "test.intcode"
 IntCodeProgram program;
 initIntCodeProgramFromFile(&program, filePath);
 
-// Pass in some input value.  TODO: make pushInput(&program, 1) function.
-insertLLongArray(&program.input, 1);
+// Pass in some input value.
+pushInput(&program, 1);
 
 // Run the program.
 intcodeRun(&program);
@@ -440,4 +440,8 @@ void pushInput(IntCodeProgram* program, long long input) {
     Pushes the given input to the top of the input buffer.
     */
     insertLLongArray(&program->input, input);
+}
+
+void clearOutput(IntCodeProgram* program) {
+    program->output.numItems = 0;
 }
