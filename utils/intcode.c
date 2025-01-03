@@ -174,7 +174,7 @@ typedef struct {
     LLongArray output;
 } IntCodeProgram;
 
-// ================================ Functions ================================
+// ================================ Utilities ================================
 
 void printIntCodeProgram(IntCodeProgram* program) {
     /*
@@ -271,6 +271,8 @@ void freeIntCodeProgram(IntCodeProgram* program) {
     freeLLongArray(&program->output);
     program->inputPointer = 0;
 }
+
+// ================================ Running Programs ================================
 
 int getOpcode(IntCodeProgram* program, ParameterMode* parameterModes) {
     /*
@@ -435,6 +437,8 @@ void intcodeRun(IntCodeProgram* program) {
     }
 }
 
+// ================================ I/O ================================
+
 void pushInput(IntCodeProgram* program, long long input) {
     /*
     Pushes the given input to the top of the input buffer.
@@ -442,6 +446,24 @@ void pushInput(IntCodeProgram* program, long long input) {
     insertLLongArray(&program->input, input);
 }
 
+bool popOutput(IntCodeProgram* program, long long* outputDest) {
+    /*
+    Pops the output from the buffer (in effect removing it), storing it in the
+    output destination.
+
+    Returns false if there's no output, otherwise, returns true.
+    */
+    if (program->output.numItems == 0) return false;
+
+    *outputDest = program->output.data[program->output.numItems - 1];
+
+    program->output.numItems -= 1;
+    return true;
+}
+
 void clearOutput(IntCodeProgram* program) {
+    /*
+    Clears the output buffer.
+    */
     program->output.numItems = 0;
 }
