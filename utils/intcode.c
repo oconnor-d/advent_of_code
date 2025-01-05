@@ -385,7 +385,6 @@ void intcodeRun(IntCodeProgram* program) {
         for (size_t idx = program->programSize; idx < program->memorySize; idx += 1) program->memory[idx] = 0;
 
         // Reset pointers and output.
-        program->inputPointer = 0;
         program->output.numItems = 0;
         program->instructionPointer = 0;
         program->halted = false;
@@ -459,6 +458,14 @@ bool popOutput(IntCodeProgram* program, long long* outputDest) {
 
     program->output.numItems -= 1;
     return true;
+}
+
+void clearInput(IntCodeProgram* program) {
+    /*
+    Clears the input buffer.
+    */
+    program->input.numItems = 0;
+    program->inputPointer = 0;
 }
 
 void clearOutput(IntCodeProgram* program) {
