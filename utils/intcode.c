@@ -359,7 +359,7 @@ void storeInMemory(IntCodeProgram* program, size_t idx, long long value) {
     if (idx >= program->memorySize) {
         size_t originalMemorySize = program->memorySize;
         // Allocate more memory, doubling it until it's greater than the necessary idx.
-        while (program->memorySize < idx) program->memorySize *= 2;
+        while (program->memorySize <= idx) program->memorySize *= 2;
         program->memory = realloc(program->memory, program->memorySize * sizeof(long long));
 
         for (size_t mIdx = originalMemorySize; mIdx < program->memorySize; mIdx += 1) program->memory[mIdx] = 0;
