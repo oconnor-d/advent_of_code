@@ -7,19 +7,6 @@
 #define MAX_ROWS 100
 #define MAX_COLS 100
 
-void pushInputASCII(IntCodeProgram* program, char* asciiInput) {
-    /*
-    Pushes the string output as int ASCII codes to the program, ended with
-    the newline code.
-    */
-    while (*asciiInput) {
-        pushInput(program, (int)asciiInput[0]);
-        asciiInput += 1;
-    }
-
-    pushInput(program, (int)'\n');
-}
-
 void problem1(char* inputFilePath) {
     /*
     The IntCode program outputs an ASCII-map, the problem is asking to find the number

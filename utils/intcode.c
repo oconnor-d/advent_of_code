@@ -445,6 +445,19 @@ void pushInput(IntCodeProgram* program, long long input) {
     insertLLongArray(&program->input, input);
 }
 
+void pushInputASCII(IntCodeProgram* program, char* asciiInput) {
+    /*
+    Pushes the string output as int ASCII codes to the program, ended with
+    the newline code.
+    */
+    while (*asciiInput) {
+        pushInput(program, (int)asciiInput[0]);
+        asciiInput += 1;
+    }
+
+    pushInput(program, (int)'\n');
+}
+
 bool popOutput(IntCodeProgram* program, long long* outputDest) {
     /*
     Pops the output from the buffer (in effect removing it), storing it in the

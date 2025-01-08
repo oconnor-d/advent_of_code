@@ -1,7 +1,7 @@
+#include "array.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
-
-#include "array.h"
 
 /*
     INT ARRAYS
@@ -13,14 +13,12 @@ void initIntArray(IntArray* array, size_t initialSize) {
     array->size = initialSize;
 }
 
-
 void freeIntArray(IntArray* array) {
     free(array->data);
     array->data = NULL;
     array->numItems = 0;
     array->size = 0;
 }
-
 
 void insertIntArray(IntArray* array, int item) {
     if (array->numItems >= array->size) {
@@ -33,13 +31,11 @@ void insertIntArray(IntArray* array, int item) {
     array->numItems += 1;
 }
 
-
 void insertAtIntArray(IntArray* array, int item, int idx) {
     if (idx >= 0 && idx < array->numItems) {
         array->data[idx] = item;
     }
 }
-
 
 bool containsIntArray(IntArray* array, int item) {
     for (int idx = 0; idx < array->numItems; idx += 1) {
@@ -50,7 +46,6 @@ bool containsIntArray(IntArray* array, int item) {
 
     return false;
 }
-
 
 int sumIntArray(IntArray* array) {
     int sum = 0;
@@ -65,7 +60,6 @@ int popIntArray(IntArray* array) {
     // Array must be non-empty.
     return array->data[--array->numItems];
 }
-
 
 void printIntArray(IntArray* array) {
     printf("[Size: %zu, Items: %zu] [", array->size, array->numItems);
@@ -89,7 +83,6 @@ void initLLongArray(LLongArray* array, size_t initialSize) {
     array->size = initialSize;
 }
 
-
 void freeLLongArray(LLongArray* array) {
     free(array->data);
     array->data = NULL;
@@ -97,10 +90,8 @@ void freeLLongArray(LLongArray* array) {
     array->size = 0;
 }
 
-
 void insertLLongArray(LLongArray* array, long long item) {
     if (array->numItems >= array->size) {
-        
         // Grow the array.
         array->size = array->size * 2;
         array->data = realloc(array->data, array->size * sizeof(long long));
@@ -109,7 +100,6 @@ void insertLLongArray(LLongArray* array, long long item) {
     array->data[array->numItems] = item;
     array->numItems += 1;
 }
-
 
 bool containsLLongArray(LLongArray* array, long long item) {
     for (int idx = 0; idx < array->numItems; idx += 1) {
@@ -121,7 +111,6 @@ bool containsLLongArray(LLongArray* array, long long item) {
     return false;
 }
 
-
 int sumLLongArray(LLongArray* array) {
     int sum = 0;
     for (int idx = 0; idx < array->numItems; idx += 1) {
@@ -131,6 +120,10 @@ int sumLLongArray(LLongArray* array) {
     return sum;
 }
 
+long long popLLongArray(LLongArray* array) {
+    // Array must be non-empty.
+    return array->data[--array->numItems];
+}
 
 void printLLongArray(LLongArray* array) {
     printf("[Size: %zu, Items: %zu] [", array->size, array->numItems);
@@ -143,7 +136,6 @@ void printLLongArray(LLongArray* array) {
     }
     printf("]\n");
 }
-
 
 /*
     STRING ARRAY
@@ -159,7 +151,6 @@ void initStringArray(StringArray* array, size_t initialSize, size_t stringMaxSiz
     }
 }
 
-
 void freeStringArray(StringArray* array) {
     for (int idx = 0; idx < array->size; idx += 1) {
         free(array->data[idx]);
@@ -171,10 +162,8 @@ void freeStringArray(StringArray* array) {
     array->size = 0;
 }
 
-
 void insertStringArray(StringArray* array, char* item) {
     if (array->numItems >= array->size) {
-        
         // Grow the array.
         array->size = array->size * 2;
         array->data = realloc(array->data, array->size * sizeof(char*));
@@ -187,13 +176,11 @@ void insertStringArray(StringArray* array, char* item) {
     array->numItems += 1;
 }
 
-
 void insertAtStringArray(StringArray* array, char* item, int idx) {
     if (idx >= 0 && idx < array->numItems) {
         strcpy(array->data[idx], item);
     }
 }
-
 
 bool containsStringArray(StringArray* array, char* item) {
     for (int idx = 0; idx < array->numItems; idx += 1) {
@@ -204,7 +191,6 @@ bool containsStringArray(StringArray* array, char* item) {
 
     return false;
 }
-
 
 void printStringArray(StringArray* array) {
     printf("[Size: %zu, Items: %zu] [", array->size, array->numItems);
