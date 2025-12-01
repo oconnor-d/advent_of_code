@@ -9,7 +9,7 @@ SCRIPT_PATH="${0:A:h}"
 
 YEAR_NUMBER="$1"
 DAY_NUMBER="$2"
-NEW_FOLDER="$SCRIPT_PATH/$YEAR_NUMBER/$DAY_NUMBER/"
+NEW_FOLDER="$SCRIPT_PATH/$YEAR_NUMBER/$DAY_NUMBER"
 
 if [ -d "$NEW_FOLDER" ]; then
   echo "$NEW_FOLDER already exists, exiting..."
