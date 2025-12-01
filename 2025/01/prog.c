@@ -50,13 +50,15 @@ void problem2(char* inputFilePath) {
 
         if (dialPosition > 99) {
             zeroesEncountered += dialPosition / 100;
-
             dialPosition = dialPosition % 100;
         } else if (dialPosition < 0) {
-            zeroesEncountered += (-1 * dialPosition / 100) + (startPosition == 0 ? 0 : 1);
-
-            dialPosition = 100 + (dialPosition % 100);
-            if (dialPosition == 100) dialPosition = 0;
+            // Count the first time we pass zero.
+            if (startPosition > 0) zeroesEncountered += 1;
+            // Count the rest of the times we pass zero (for large turns that pass zero multiple times).
+            zeroesEncountered += -dialPosition / 100;
+            // Get the position back in range
+            dialPosition = dialPosition % 100;
+            if (dialPosition < 0) dialPosition += 100;
         } else if (dialPosition == 0) {
             zeroesEncountered += 1;
         }
