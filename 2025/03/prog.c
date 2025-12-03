@@ -49,33 +49,35 @@ void problem2(char* inputFilePath) {
     ssize_t lineLen;
 
     long long joltage = 0;
-
-    char digits[12];
+    long partialJoltage;
+    int lastIndex;
+    char bestDigit;
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
-        // Empty out the digits array for later comparisons.
-        for (int idx = 0; idx < 12; idx += 1) digits[idx] = '0';
+        lastIndex = 0;
+        bestDigit = line[0];
 
-        int lastIndex = 0;
-        digits[0] = line[0];
+        partialJoltage = 0;
 
         // For each digit we need to find, get the greatest left-most digit that still leaves
         // room for the remaining digits needed to fill out all 12 battery slots.
         for (int idx = 0; idx < 12; idx += 1) {
             for (int dIdx = lastIndex + 1; dIdx < (lineLen - 12 + idx); dIdx += 1) {
-                if (line[dIdx] > digits[idx]) {
-                    digits[idx] = line[dIdx];
+                if (line[dIdx] > bestDigit) {
+                    bestDigit = line[dIdx];
                     lastIndex = dIdx;
                 }
             }
 
+            // Build up the partialJoltage digit by digit. The repeated "* 10"'s means that the first
+            // digit found will end up as the most significant, the last one will be in the one's spot.
+            partialJoltage = (partialJoltage * 10) + (bestDigit - '0');
+
             // Set up the first digit to compare against for the next index.
             lastIndex += 1;
-            digits[idx + 1] = line[lastIndex];
+            bestDigit = line[lastIndex];
         }
- 
-        // This basically turns the digits char array into the number it represents and adds that
-        // to the joltage.
-        for (int idx = 0; idx < 12; idx += 1) joltage += (digits[idx] - '0') * pow(10, 11 - idx);
+
+        joltage += partialJoltage;
     }
 
     fclose(inputFile);
