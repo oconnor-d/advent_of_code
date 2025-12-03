@@ -4,52 +4,10 @@
 
 #include "../../utils/array.c"
 #include "../../utils/map.c"
+#include "../../utils/math.c"
 #include "../../utils/string.c"
 
 #define INPUT_MAX_SIZE 50
-
-int countDigits(long number) {
-    /*
-    Counts the number of digits in the given number.
-    */
-    if (number < 0) number *= -1;
-
-    int digits = 1;
-    while (number > 9) {
-        number /= 10;
-        digits += 1;
-    }
-
-    return digits;
-}
-
-long rightHalf(long number, int digits) {
-    /*
-    Gets the right half of the number. The number of digits in the number
-    MUST be even, otherwise this will not work reliably.
-    */
-    // Manually compute power since `pow` doesn't return an int.
-    int power = 10;
-    for (int idx = 1; idx < digits / 2; idx += 1) {
-        power *= 10;
-    }
-
-    return number % power;
-}
-
-long leftHalf(long number, int digits) {
-    /*
-    Gets the left half of the number. The number of digits in the number
-    MUST be even, otherwise this will not work reliably.
-    */
-    // Manually compute power since `pow` doesn't return an int.
-    int power = 10;
-    for (int idx = 1; idx < digits / 2; idx += 1) {
-        power *= 10;
-    }
-
-    return number / power;
-}
 
 void problem1(char* inputFilePath) {
     /*

@@ -1,54 +1,10 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
+#include "../../utils/math.c"
 #include "../../utils/string.c"
-
-#define LINE_BUFFER 1000
-
-// TODO: move to math.c
-int countDigits(long number) {
-    /*
-    Counts the number of digits in the given number.
-    */
-    if (number < 0) number *= -1;
-
-    int digits = 1;
-    while (number > 9) {
-        number /= 10;
-        digits += 1;
-    }
-
-    return digits;
-}
-
-long rightHalf(long number, int digits) {
-    /*
-    Gets the right half of the number. The number of digits in the number
-    MUST be even, otherwise this will not work reliably.
-    */
-    // Manually compute power since `pow` doesn't return an int.
-    int power = 10;
-    for (int idx = 1; idx < digits / 2; idx += 1) {
-        power *= 10;
-    }
-
-    return number % power;
-}
-
-long leftHalf(long number, int digits) {
-    /*
-    Gets the left half of the number. The number of digits in the number
-    MUST be even, otherwise this will not work reliably.
-    */
-    // Manually compute power since `pow` doesn't return an int.
-    int power = 10;
-    for (int idx = 1; idx < digits / 2; idx += 1) {
-        power *= 10;
-    }
-
-    return number / power;
-}
 
 void problem1(char* inputFilePath) {
     clock_t start = clock();
@@ -60,33 +16,28 @@ void problem1(char* inputFilePath) {
     ssize_t lineLen;
     lineLen = getline(&line, &lineCap, inputFile);
 
-    long long rangeStart, rangeEnd;
+    long rangeStart, rangeEnd;
     int endIdx = -1;
     int numDigits;
 
-    long long invalidIDSum = 0;
+    long invalidIDSum = 0;
 
     while (endIdx < lineLen - 1) {
         rangeStart = parseNumber(line, endIdx + 1, &endIdx);
         rangeEnd = parseNumber(line, endIdx + 1, &endIdx);
 
-        for (long long id = rangeStart; id <= rangeEnd; id += 1) {
+        for (long id = rangeStart; id <= rangeEnd; id += 1) {
             numDigits = countDigits(id);
 
             // All odd IDs are valid.
-            if (numDigits % 2 == 1) continue;
-
-            if (leftHalf(id, numDigits) == rightHalf(id, numDigits)) {
-                // printf("VALID: %lld\n", id);
-                invalidIDSum += id;
-            }
+            if (numDigits % 2 == 0 && leftHalf(id, numDigits) == rightHalf(id, numDigits)) invalidIDSum += id;
         }
     }
 
     fclose(inputFile);
 
     clock_t end = clock();
-    printf("Problem 01: %lld [%.2fms]\n", invalidIDSum, (double)(end - start) / CLOCKS_PER_SEC * 1000);
+    printf("Problem 01: %ld [%.2fms]\n", invalidIDSum, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 void problem2(char* inputFilePath) {
@@ -98,17 +49,17 @@ void problem2(char* inputFilePath) {
     ssize_t lineLen;
     lineLen = getline(&line, &lineCap, inputFile);
 
-    long long rangeStart, rangeEnd;
+    long rangeStart, rangeEnd;
     int endIdx = -1;
     int numDigits;
 
-    long long invalidIDSum = 0;
+    long invalidIDSum = 0;
 
     while (endIdx < lineLen - 1) {
         rangeStart = parseNumber(line, endIdx + 1, &endIdx);
         rangeEnd = parseNumber(line, endIdx + 1, &endIdx);
 
-        for (long long id = rangeStart; id <= rangeEnd; id += 1) {
+        for (long id = rangeStart; id <= rangeEnd; id += 1) {
             numDigits = countDigits(id);
 
             // For all factors of the ID, check if ALL factor-sized portions of the number are equal.
@@ -117,7 +68,7 @@ void problem2(char* inputFilePath) {
             //  Factor of 2: 23, 23, 23 -> all equal (short-circuit, no need to check factor 3).
             // For a number like 123456, we'd also check:
             //  Factor of 3: 123, 456 -> not equal.
-            for (int factor = 0; factor <= numDigits / 2; factor += 1) {
+            for (int factor = 1; factor <= numDigits / 2; factor += 1) {
                 // Continue for non-factors.
                 if (numDigits % factor != 0) continue;
 
@@ -127,12 +78,12 @@ void problem2(char* inputFilePath) {
 
                 // For each factor-sized portion, compare it to the previous portion. If any aren't equal, we
                 // don't have a repeating sequence.
-                int matches = 1;
-                long long lastIdPortion = id % divisor;
-                long long idPortion = id;
+                bool isValid = false;
+                long lastIdPortion = id % divisor;
+                long idPortion = id;
                 while (idPortion > 0) {
                     if ((idPortion % divisor) != lastIdPortion) {
-                        matches = 0;
+                        isValid = true;
                         break;
                     }
 
@@ -140,8 +91,10 @@ void problem2(char* inputFilePath) {
                     idPortion /= divisor;
                 }
 
-                if (matches) {
+                if (!isValid) {
                     invalidIDSum += id;
+                    // Don't want to check the other factors when we already know this ID is
+                    // invalid.
                     break;
                 }
             }
@@ -151,7 +104,7 @@ void problem2(char* inputFilePath) {
     fclose(inputFile);
 
     clock_t end = clock();
-    printf("Problem 02: %lld [%.2fms]\n", invalidIDSum, (double)(end - start) / CLOCKS_PER_SEC * 1000);
+    printf("Problem 02: %ld [%.2fms]\n", invalidIDSum, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 /*
