@@ -3,10 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "../../utils/array.c"
-
-#define MAX_ROWS 1000
-#define MAX_COLS 1000
+#define MAX_ROWS 250
+#define MAX_COLS 250
 
 #define SPLITTER '^'
 #define BEAM_START 'S'
@@ -20,36 +18,18 @@ void problem1(char* inputFilePath) {
     ssize_t lineLen;
 
     // Put the input into a 2D array
-    char input[MAX_ROWS][MAX_COLS];
-    int rows = 0, cols = 0;
-    int beamStartIdx;
+    bool beams[MAX_COLS] = {false};
+    int numSplits = 0;
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
         for (int idx = 0; idx < lineLen - 1; idx += 1) {
-            input[rows][idx] = line[idx];
+            if (line[idx] == BEAM_START) beams[idx] = true;
 
-            if (line[idx] == BEAM_START) beamStartIdx = idx;
-        }
-        rows += 1;
-        cols = lineLen - 1;
-    }
-
-    // For each level, we'll be keeping track of the current spots with beams.
-    bool beams[cols];
-    for (int idx = 0; idx < cols; idx += 1) beams[idx] = false;
-    beams[beamStartIdx] = true;
-
-    int numSplits = 0;
-    for (int r = 0; r < rows; r += 1) {
-        for (int c = 0; c < cols; c += 1) {
-            // If a beam hit a splitter, count that and add beams to the left and right.
-            // Since splitters can't be directly next to each other, we don't need to worry
-            // about splitters on the same level interfering with each other.
-            if (input[r][c] == SPLITTER && beams[c]) {
+            if (line[idx] == SPLITTER && beams[idx]) {
                 numSplits += 1;
-                beams[c] = false;
 
-                beams[c - 1] = true;
-                beams[c + 1] = true;
+                beams[idx] = false;
+                beams[idx - 1] = true;
+                beams[idx + 1] = true;
             }
         }
     }
@@ -73,36 +53,22 @@ void problem2(char* inputFilePath) {
     size_t lineCap = 0;
     ssize_t lineLen;
 
-    char input[MAX_ROWS][MAX_COLS];
-    int rows = 0, cols = 0;
-    int beamStartIdx;
+    long counts[MAX_COLS] = {0};
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
         for (int idx = 0; idx < lineLen - 1; idx += 1) {
-            input[rows][idx] = line[idx];
+            if (line[idx] == BEAM_START) counts[idx] = 1;
 
-            if (line[idx] == BEAM_START) beamStartIdx = idx;
-        }
-        rows += 1;
-        cols = lineLen - 1;
-    }
-
-    long counts[cols];
-    for (int idx = 0; idx < cols; idx += 1) counts[idx] = 0;
-    counts[beamStartIdx] = 1;
-
-    for (int r = 0; r < rows; r += 1) {
-        for (int c = 0; c < cols; c += 1) {
-            if (input[r][c] == SPLITTER && counts[c]) {
-                counts[c - 1] += counts[c];
-                counts[c + 1] += counts[c];
-                counts[c] = 0;
+            if (line[idx] == SPLITTER && counts[idx]) {
+                counts[idx - 1] += counts[idx];
+                counts[idx + 1] += counts[idx];
+                counts[idx] = 0;
             }
         }
     }
 
     // Get the total number of timelines (the total number of different beams making it to the final level).
     long total = 0;
-    for (int c = 0; c < cols; c += 1) total += counts[c];
+    for (int c = 0; c < MAX_COLS; c += 1) total += counts[c];
 
     fclose(inputFile);
 
