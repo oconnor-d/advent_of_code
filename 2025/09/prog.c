@@ -82,10 +82,21 @@ void problem2(char* inputFilePath) {
             y2 = coords[idx + 3];
         }
 
-        minX = x1 < x2 ? x1 : x2;
-        minY = y1 < y2 ? y1 : y2;
-        maxX = x1 < x2 ? x2 : x1;
-        maxY = y1 < y2 ? y2 : y1;
+        if (x1 < x2) {
+            minX = x1;
+            maxX = x2;
+        } else {
+            minX = x2;
+            maxX = x1;
+        }
+
+        if (y1 < y2) {
+            minY = y1;
+            maxY = y2;
+        } else {
+            minY = y2;
+            maxY = y1;
+        }
 
         if (x1 == x2) {
             for (int y = minY; y <= maxY; y += 1) {
@@ -112,14 +123,25 @@ void problem2(char* inputFilePath) {
             x2 = coords[j];
             y2 = coords[j + 1];
 
-            // Only figure out if we're inside the rectangle if we've found a bigger area.
-            area = (long)(abs(x1 - x2) + 1) * (abs(y1 - y2) + 1);
-            if (area <= maxArea) continue;
+            if (x1 < x2) {
+                minX = x1;
+                maxX = x2;
+            } else {
+                minX = x2;
+                maxX = x1;
+            }
 
-            minX = x1 < x2 ? x1 : x2;
-            minY = y1 < y2 ? y1 : y2;
-            maxX = x1 < x2 ? x2 : x1;
-            maxY = y1 < y2 ? y2 : y1;
+            if (y1 < y2) {
+                minY = y1;
+                maxY = y2;
+            } else {
+                minY = y2;
+                maxY = y1;
+            }
+
+            // Only figure out if we're inside the rectangle if we've found a bigger area.
+            area = (long)(maxX - minX + 1) * (maxY - minY + 1);
+            if (area <= maxArea) continue;
 
             isInside = true;
             for (int p = 0; p < perimeterCoords.numItems; p += 2) {
@@ -141,9 +163,7 @@ void problem2(char* inputFilePath) {
                 }
             }
 
-            if (isInside) {
-                maxArea = area;
-            }
+            if (isInside) maxArea = area;
         }
     }
 
