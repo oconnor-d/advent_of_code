@@ -8,6 +8,14 @@
 
 #define MAX_NODES 700
 
+int get(int idLookup[26][26][26], char c1, char c2, char c3) {
+    return idLookup[c1 - 'a'][c2 - 'a'][c3 - 'a'];
+}
+
+void set(int idLookup[26][26][26], char c1, char c2, char c3, int id) {
+    idLookup[c1 - 'a'][c2 - 'a'][c3 - 'a'] = id;
+}
+
 void problem1(char* inputFilePath) {
     clock_t start = clock();
 
@@ -16,52 +24,47 @@ void problem1(char* inputFilePath) {
     size_t lineCap = 0;
     ssize_t lineLen;
 
-    int idLookup[26][26][26];
-    for (int i = 0; i < 26; i += 1)
-        for (int j = 0; j < 26; j += 1)
-            for (int k = 0; k < 26; k += 1)
-                idLookup[i][j][k] = -1;
-
+    // Lookup table to map 'xyz' -> an id for use in the adjacency matrix below.
+    int idLookup[26][26][26] = {0};
+    // Adjacency matrix.
     bool graph[MAX_NODES][MAX_NODES] = {false};
 
-    int maxId = 0;
+    // Set up the adjacency matrix.
+    int maxId = 1;
     int sourceId, destId;
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
-        sourceId = idLookup[line[0] - 'a'][line[1] - 'a'][line[2] - 'a'];
-        if (sourceId == -1) {
-            idLookup[line[0] - 'a'][line[1] - 'a'][line[2] - 'a'] = maxId;
+        sourceId = get(idLookup, line[0], line[1], line[2]);
+        if (sourceId == 0) {
+            set(idLookup, line[0], line[1], line[2], maxId);
             sourceId = maxId;
-
             maxId += 1;
         }
 
         int idx = 5;
         while (idx < lineLen - 1) {
-            destId = idLookup[line[idx] - 'a'][line[idx + 1] - 'a'][line[idx + 2] - 'a'];
+            destId = get(idLookup, line[idx], line[idx + 1], line[idx + 2]);
 
-            if (destId == -1) {
-                idLookup[line[idx] - 'a'][line[idx + 1] - 'a'][line[idx + 2] - 'a'] = maxId;
+            if (destId == 0) {
+                set(idLookup, line[idx], line[idx + 1], line[idx + 2], maxId);
                 destId = maxId;
-
                 maxId += 1;
             }
 
             graph[sourceId][destId] = true;
-
             idx += 4;
         }
     }
 
     // DFS from 'you' to all 'out's.
-    int outId = idLookup['o' - 'a']['u' - 'a']['t' - 'a'];
+    int outId = get(idLookup, 'o', 'u', 't');
     int paths = 0;
     IntArray visitStack;
     initIntArray(&visitStack, 333);
-    insertIntArray(&visitStack, idLookup['y' - 'a']['o' - 'a']['u' - 'a']);
+    insertIntArray(&visitStack, get(idLookup, 'y', 'o', 'u'));
     while (visitStack.numItems > 0) {
         sourceId = popIntArray(&visitStack);
 
-        for (int id = 0; id <= maxId; id += 1) {
+        for (int id = 1; id <= maxId; id += 1) {
             if (!graph[sourceId][id]) continue;
 
             if (id == outId)
@@ -77,22 +80,16 @@ void problem1(char* inputFilePath) {
     printf("Problem 01: %d [%.2fms]\n", paths, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
-long long** cache;
-bool graph[MAX_NODES][MAX_NODES] = {false};
+// Recursive dfs search using the cache for already traversed paths to speed things up.
+long getPaths(bool graph[MAX_NODES][MAX_NODES], int startId, int outId, int maxId, long cache[MAX_NODES][MAX_NODES]) {
+    if (startId == outId) return 1;
+    if (cache[startId][outId] != -1) return cache[startId][outId];
 
-long long getPaths(int startId, int outId, int maxId) {
-    if (startId == outId) {
-        return 1;
-    }
-    if (cache[startId][outId] != -1) {
-        return cache[startId][outId];
-    }
-
-    long long paths = 0;
-    for (int idx = 0; idx <= maxId; idx += 1) {
+    long paths = 0;
+    for (int idx = 1; idx <= maxId; idx += 1) {
         if (!graph[startId][idx]) continue;
 
-        paths += getPaths(idx, outId, maxId);
+        paths += getPaths(graph, idx, outId, maxId, cache);
     }
 
     cache[startId][outId] = paths;
@@ -108,60 +105,56 @@ void problem2(char* inputFilePath) {
     size_t lineCap = 0;
     ssize_t lineLen;
 
-    int idLookup[26][26][26];
-    for (int i = 0; i < 26; i += 1)
-        for (int j = 0; j < 26; j += 1)
-            for (int k = 0; k < 26; k += 1)
-                idLookup[i][j][k] = -1;
+    int idLookup[26][26][26] = {0};
+    bool graph[MAX_NODES][MAX_NODES] = {false};
 
-    int maxId = 0;
+    // Caches the number of paths from id1 to id2.
+    long cache[MAX_NODES][MAX_NODES] = {0};
+
+    int maxId = 1;
     int sourceId, destId;
     while ((lineLen = getline(&line, &lineCap, inputFile)) > 0) {
-        sourceId = idLookup[line[0] - 'a'][line[1] - 'a'][line[2] - 'a'];
-        if (sourceId == -1) {
-            idLookup[line[0] - 'a'][line[1] - 'a'][line[2] - 'a'] = maxId;
+        sourceId = get(idLookup, line[0], line[1], line[2]);
+        if (sourceId == 0) {
+            set(idLookup, line[0], line[1], line[2], maxId);
             sourceId = maxId;
-
             maxId += 1;
         }
 
         int idx = 5;
         while (idx < lineLen - 1) {
-            destId = idLookup[line[idx] - 'a'][line[idx + 1] - 'a'][line[idx + 2] - 'a'];
+            destId = get(idLookup, line[idx], line[idx + 1], line[idx + 2]);
 
-            if (destId == -1) {
-                idLookup[line[idx] - 'a'][line[idx + 1] - 'a'][line[idx + 2] - 'a'] = maxId;
+            if (destId == 0) {
+                set(idLookup, line[idx], line[idx + 1], line[idx + 2], maxId);
                 destId = maxId;
-
                 maxId += 1;
             }
 
             graph[sourceId][destId] = true;
-
             idx += 4;
         }
     }
 
-    cache = malloc((maxId + 1) * sizeof(long long));
-    for (int i = 0; i <= maxId; i += 1) {
-        cache[i] = malloc((maxId + 1) * sizeof(long long));
-        for (int j = 0; j <= maxId; j += 1) {
+    // Initialize the cache with misses.
+    for (int i = 1; i <= maxId; i += 1)
+        for (int j = 1; j <= maxId; j += 1)
             cache[i][j] = -1;
-        }
-    }
 
-    // DFS from 'svr' to all 'out's, keeping track if we've hit 'fft' and 'dac' before counting it as a valid path.
-    int outId = idLookup['o' - 'a']['u' - 'a']['t' - 'a'];
-    int fftId = idLookup['f' - 'a']['f' - 'a']['t' - 'a'];
-    int dacId = idLookup['d' - 'a']['a' - 'a']['c' - 'a'];
-    int svrId = idLookup['s' - 'a']['v' - 'a']['r' - 'a'];
+    // Get all paths from svr to fft, fft to dac, and dac to out, and multiply them.
+    int svrId = get(idLookup, 's', 'v', 'r');
+    int dacId = get(idLookup, 'd', 'a', 'c');
+    int fftId = get(idLookup, 'f', 'f', 't');
+    int outId = get(idLookup, 'o', 'u', 't');
 
-    long long paths = getPaths(svrId, fftId, maxId) * getPaths(fftId, dacId, maxId) * getPaths(dacId, outId, maxId);
+    long paths = (getPaths(graph, svrId, fftId, maxId, cache) *
+                  getPaths(graph, fftId, dacId, maxId, cache) *
+                  getPaths(graph, dacId, outId, maxId, cache));
 
     fclose(inputFile);
 
     clock_t end = clock();
-    printf("Problem 02: %lld [%.2fms]\n", paths, (double)(end - start) / CLOCKS_PER_SEC * 1000);
+    printf("Problem 02: %ld [%.2fms]\n", paths, (double)(end - start) / CLOCKS_PER_SEC * 1000);
 }
 
 /*
